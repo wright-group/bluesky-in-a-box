@@ -26,4 +26,4 @@ $ apt install docker-compose
 $ sudo docker-compose up --build
 ```
 
-Go to https://localhost:60610/docs to see queueserver api.
+Go to http://localhost:60610/docs to see queueserver api.
