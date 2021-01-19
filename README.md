@@ -1,6 +1,3 @@
-# wright-plans
+# bluesky-in-a-box 
 
-Tools for the Wright Group to interface with the Bluesky ecosystem.
-
-This is currently just a playground.
-Nothing here right now.
+Bluesky services in docker containers, for use in Wright Group experimental orchestration.
