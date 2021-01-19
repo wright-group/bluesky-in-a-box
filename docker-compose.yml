@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+  re-manager:
+    build: ./re-manager
+    network_mode: "host"
+    ports:
+      - 5555:5555
+    depends_on: 
+      - "redis"
+  bluesky-queueserver:
+    build: ./bluesky-queueserver
+    network_mode: "host"
+    ports:
+      - 60610:60610
+    depends_on:
+      - "re-manager"
