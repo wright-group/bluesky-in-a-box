@@ -1,0 +1,6 @@
+FROM node
+WORKDIR /usr/app
+RUN git clone https://github.com/bluesky/bluesky-webclient.git
+WORKDIR /usr/app/bluesky-webclient
+RUN npm install
+CMD ["npm", "start"]
