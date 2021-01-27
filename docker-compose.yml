@@ -13,7 +13,7 @@ services:
     network_mode: "host"
     ports:
       - 5555:5555
-    depends_on: 
+    depends_on:
       - "redis"
   bluesky-queueserver:
     build: ./bluesky-queueserver
@@ -22,3 +22,11 @@ services:
       - 60610:60610
     depends_on:
       - "re-manager"
+  bluesky-webclient:
+    build: ./bluesky-webclient
+    network_mode: "host"
+    stdin_open: true
+    ports:
+      - 3001:3001
+    depends_on:
+      - bluesky-queueserver
