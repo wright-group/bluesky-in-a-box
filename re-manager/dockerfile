@@ -4,6 +4,17 @@ RUN apt install git -y
 RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
 COPY ./databroker-config.yml /usr/local/share/intake/catalog.yml
-RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver@main
-RUN python3 -c "import distutils.spawn; print(distutils.spawn.find_executable('start-re-manager'))"
-CMD ["/usr/local/bin/start-re-manager", "--databroker-config=mongo"]
+COPY ./startup.py ./startup.py
+COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml
+COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
+RUN python3 -m pip install git+https://github.com/bluesky/bluesky@master
+RUN python3 -m pip install pint
+RUN python3 -m pip install attune
+RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
+RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
+RUN python3 -m pip install git+https://github.com/wright-group/wright-plans@970127c
+RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic
+CMD ["/usr/local/bin/start-re-manager", "--databroker-config=mongo", "--startup-script=./startup.py", "--existing-plans-devices=./existing_plans_and_devices.yaml", "--user-group-permissions=./user_group_permissions.yaml"]
+
+
+

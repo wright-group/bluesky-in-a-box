@@ -3,6 +3,6 @@ RUN apt update
 RUN apt install git -y
 RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
-RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver@main
+RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
 RUN python3 -c "import distutils.spawn; print(distutils.spawn.find_executable('uvicorn'))"
 CMD ["uvicorn", "bluesky_queueserver.server.server:app", "--port", "60610"]
