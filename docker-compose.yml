@@ -23,7 +23,7 @@ services:
     depends_on:
       - "re-manager"
   bluesky-webclient:
-    build: ./bluesky-webclient
+    image: ghcr.io/bluesky/bluesky-webclient:main
     network_mode: "host"
     stdin_open: true
     ports:
