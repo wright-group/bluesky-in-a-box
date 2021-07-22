@@ -15,6 +15,13 @@ services:
       - 5555:5555
     depends_on:
       - "redis"
+      - "zmq-proxy"
+  zmq-proxy:
+    build: ./zmq-proxy
+    network_mode: "host"
+    ports:
+      - 5567:5567
+      - 5568:5568
   bluesky-queueserver:
     build: ./bluesky-queueserver
     network_mode: "host"
