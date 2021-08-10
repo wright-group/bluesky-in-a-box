@@ -14,7 +14,7 @@ RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
 RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
 RUN python3 -m pip install git+https://github.com/wright-group/wright-plans@970127c
 RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic
-CMD ["/usr/local/bin/start-re-manager", "--databroker-config=mongo", "--startup-script=./startup.py", "--existing-plans-devices=./existing_plans_and_devices.yaml", "--user-group-permissions=./user_group_permissions.yaml"]
+CMD ["/usr/local/bin/start-re-manager", "--databroker-config=mongo", "--startup-script=./startup.py", "--existing-plans-devices=./existing_plans_and_devices.yaml", "--user-group-permissions=./user_group_permissions.yaml", "--zmq-data-proxy-addr", "localhost:5567"]
 
 
 
