@@ -1,20 +1,31 @@
 FROM debian:bullseye
+
+# python
 RUN apt update
 RUN apt install git -y
 RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
-COPY ./databroker-config.yml /usr/local/share/intake/catalog.yml
-COPY ./startup.py ./startup.py
-COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml
-COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
 RUN python3 -m pip install git+https://github.com/bluesky/bluesky@master
 RUN python3 -m pip install pint
 RUN python3 -m pip install attune
-RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
+ENV PYTHONUNBUFFERED 1
+
+# databroker
+COPY ./databroker-config.yml /usr/local/share/intake/catalog.yml
+
+# happi
+RUN python3 -m pip install happi
 RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
+COPY ./happi.ini /happi.ini
+ENV HAPPI_CFG /happi.ini
+
+# re-manager
+RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
 RUN python3 -m pip install git+https://github.com/wright-group/wright-plans@970127c
 RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic
-CMD ["/usr/local/bin/start-re-manager", "--databroker-config=mongo", "--startup-script=./startup.py", "--existing-plans-devices=./existing_plans_and_devices.yaml", "--user-group-permissions=./user_group_permissions.yaml", "--zmq-data-proxy-addr", "localhost:5567"]
+COPY ./startup.py ./startup.py
+COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml
+COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
 
-
-
+# start
+CMD ["/usr/local/bin/start-re-manager", "--databroker-config=mongo", "--startup-script=./startup.py", "--existing-plans-devices=./existing_plans_and_devices.yaml", "--user-group-permissions=./user_group_permissions.yaml", "--zmq-data-proxy-addr", "zmq-proxy:5567", "--redis-addr", "redis:6379"]
