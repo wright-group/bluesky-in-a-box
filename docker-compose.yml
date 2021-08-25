@@ -10,28 +10,27 @@ services:
       - 6379:6379
   re-manager:
     build: ./re-manager
-    network_mode: "host"
     ports:
-      - 5555:5555
+      - 60615:60615
+    volumes:
+      - ${HAPPI_DB_PATH}:/happi_db.json
     depends_on:
       - "redis"
       - "zmq-proxy"
   zmq-proxy:
     build: ./zmq-proxy
-    network_mode: "host"
     ports:
       - 5567:5567
       - 5568:5568
+x-disabled:
   bluesky-queueserver:
     build: ./bluesky-queueserver
-    network_mode: "host"
     ports:
       - 60610:60610
     depends_on:
       - "re-manager"
   bluesky-webclient:
     image: ghcr.io/bluesky/bluesky-webclient:main
-    network_mode: "host"
     stdin_open: true
     ports:
       - 3001:3001
