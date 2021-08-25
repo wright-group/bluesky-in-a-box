@@ -11,7 +11,7 @@ services:
   re-manager:
     build: ./re-manager
     ports:
-      - 5555:5555
+      - 60615:60615
     volumes:
       - ${HAPPI_DB_PATH}:/happi_db.json
     depends_on:
@@ -22,6 +22,7 @@ services:
     ports:
       - 5567:5567
       - 5568:5568
+x-disabled:
   bluesky-queueserver:
     build: ./bluesky-queueserver
     ports:

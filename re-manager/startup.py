@@ -13,13 +13,9 @@ from wright_plans import (
 )
 from wright_plans.attune import motortune
 
-from bluesky.protocols import Readable
+from bluesky.plans import count
 
-import pickle
-print(pickle.dumps(Readable))
-
-
-happi_client = happi.Client(database=happi.backends.backend("~/.local/share/happi/db.json"))
+happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
 
 for device in happi_client.all_devices:
     try:
