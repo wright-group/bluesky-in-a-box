@@ -15,13 +15,13 @@ COPY ./databroker-config.yml /usr/local/share/intake/catalog.yml
 
 # happi
 RUN python3 -m pip install happi
-RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
+RUN python3 -m pip install git+https://github.com/ksunden/yaqc-bluesky@a158709
 COPY ./happi.ini /happi.ini
 ENV HAPPI_CFG /happi.ini
 
 # re-manager
 RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
-RUN python3 -m pip install git+https://github.com/wright-group/wright-plans@970127c
+RUN python3 -m pip install git+https://github.com/wright-group/wright-plans
 RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic@instrument_missing
 COPY ./startup.py ./startup.py
 #COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml
