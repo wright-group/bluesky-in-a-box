@@ -38,7 +38,9 @@ class GenWT5(CallbackBase):
         with open(self.bluesky_doc_dir / "start.json", "wt") as f:
             json.dump(self.start_doc, f, indent=2)
 
-        self.shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")]))
+        self.shape = list(
+            self.start_doc.get("shape", [self.start_doc.get("num_points")])
+        )
         self.scan_shape = tuple(self.shape)
 
     def descriptor(self, doc):
