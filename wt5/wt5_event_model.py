@@ -56,6 +56,8 @@ class GenWT5(CallbackBase):
             edit_local=True,
         )
 
+        self.data.attrs["created"] = wt.kit.TimeStamp(self.start_doc["time"]).RFC3339
+
         # compute full shape, channel shapes
         # handling of dims may need adjustment for cameras...
         chan_shapes = {}
@@ -117,11 +119,8 @@ class GenWT5(CallbackBase):
 
             # end timestamp
             # exit_status/reason
+
             # transform (axes make filling harder than it needs to be)
-            print(
-                *(f"{x}_readback" for x in self.start_doc["motors"][: len(self.scan_shape)]),
-                *self.dims,
-            )
             self.data.transform(
                 *(f"{x}_readback" for x in self.start_doc["motors"][: len(self.scan_shape)]),
                 *self.dims,
@@ -129,15 +128,18 @@ class GenWT5(CallbackBase):
 
             self.data.flush()
 
-            for chan in self.data.channel_names:
-                try:
-                    wt.artists.quick2D(
-                        self.data, channel=chan, autosave=True, save_directory=self.run_dir, fname=chan
-                    )
-                except wt.exceptions.DimensionalityError:
-                    wt.artists.quick1D(
-                        self.data, channel=chan, autosave=True, save_directory=self.run_dir, fname=chan
-                    )
+            for dev, hints in self.descriptor_doc["hints"].items():
+                for chan in hints["fields"]:
+                    if not chan in self.data.channel_names:
+                        continue
+                    try:
+                        wt.artists.quick2D(
+                            self.data, channel=chan, autosave=True, save_directory=self.run_dir, fname=chan
+                        )
+                    except wt.exceptions.DimensionalityError:
+                        wt.artists.quick1D(
+                            self.data, channel=chan, autosave=True, save_directory=self.run_dir, fname=chan
+                        )
 
             with open(self.run_dir / f"{self.descriptor_doc['name']} tree.txt", "wt") as f:
                 with contextlib.redirect_stdout(f):
