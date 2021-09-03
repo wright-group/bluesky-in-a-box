@@ -38,7 +38,7 @@ class GenWT5(CallbackBase):
         with open(self.bluesky_doc_dir / "start.json", "wt") as f:
             json.dump(self.start_doc, f, indent=2)
 
-        self.shape = list(self.start_doc["shape"])
+        self.shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")]))
         self.scan_shape = tuple(self.shape)
 
     def descriptor(self, doc):
@@ -143,15 +143,24 @@ class GenWT5(CallbackBase):
             # exit_status/reason
 
             # transform (axes make filling harder than it needs to be)
-            self.data.transform(
-                *(
-                    f"{x}_readback"
-                    for x in self.start_doc["motors"][: len(self.scan_shape)]
-                ),
-                *self.dims,
-            )
+            try:
+                self.data.transform(
+                    *(
+                        f"{x}_readback"
+                        for x in self.start_doc["motors"][: len(self.scan_shape)]
+                    ),
+                    *self.dims,
+                )
+            except KeyError:
+                self.data.transform("labtime", *self.dims)
 
             self.data.flush()
+
+            with open(
+                self.run_dir / f"{self.descriptor_doc['name']} tree.txt", "wt"
+            ) as f:
+                with contextlib.redirect_stdout(f):
+                    self.data.print_tree(verbose=True)
 
             for dev, hints in self.descriptor_doc["hints"].items():
                 for chan in hints["fields"]:
@@ -165,7 +174,7 @@ class GenWT5(CallbackBase):
                             save_directory=self.run_dir,
                             fname=chan,
                         )
-                    except wt.exceptions.DimensionalityError:
+                    except (wt.exceptions.DimensionalityError, IndexError):
                         wt.artists.quick1D(
                             self.data,
                             channel=chan,
@@ -173,12 +182,6 @@ class GenWT5(CallbackBase):
                             save_directory=self.run_dir,
                             fname=chan,
                         )
-
-            with open(
-                self.run_dir / f"{self.descriptor_doc['name']} tree.txt", "wt"
-            ) as f:
-                with contextlib.redirect_stdout(f):
-                    self.data.print_tree(verbose=True)
         finally:
             self.data.flush()
             self.data.close()
