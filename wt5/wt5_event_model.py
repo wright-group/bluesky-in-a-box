@@ -60,7 +60,9 @@ class GenWT5(CallbackBase):
             try:
                 self.data.attrs[k] = v
             except:
-                print(f"Skipping key {repr(k)} from start document in metadata because it cannot be placed in HDF5 attrs")
+                print(
+                    f"Skipping key {repr(k)} from start document in metadata because it cannot be placed in HDF5 attrs"
+                )
         self.data.attrs["created"] = wt.kit.TimeStamp(self.start_doc["time"]).RFC3339
 
         # compute full shape, channel shapes
@@ -90,19 +92,31 @@ class GenWT5(CallbackBase):
         for k, chan_shape in chan_shapes.items():
             chan_shape += [1] * (len(self.shape) - len(chan_shape))
             units = self.descriptor_doc["data_keys"][k].get("units")
-            if any(
-                k in self.descriptor_doc["object_keys"][mot]
-                for mot in self.start_doc.get("motors")
+            if (
+                any(
+                    k in self.descriptor_doc["object_keys"][det]
+                    for det in self.start_doc.get("detectors")
+                )
+                and not k in self.dims
             ):
-                self.data.create_variable(k, shape=chan_shape, units=units)
-            elif k in self.dims:
-                self.data.create_variable(k, shape=chan_shape, units=units)
-            else:
                 self.data.create_channel(k, shape=chan_shape, units=units)
+            else:
+                self.data.create_variable(k, shape=chan_shape, units=units)
             for vk, v in self.descriptor_doc["data_keys"][k].items():
                 if vk in ("shape", "units", "dtype"):
                     continue
                 self.data[k].attrs[vk] = v
+
+        for hw, (units, terms) in self.start_doc.get("plan_constants", {}).items():
+            terms.append([-1, hw])
+            const_term = -1 * ([t for t in terms if t[1] is None] or [[0]])[0][0]
+            terms = list(filter(lambda x: x[1] is not None, terms))
+            if const_term < 0:
+                terms = [[-1 * coeff, var] for coeff, var in terms]
+            c = self.data.create_constant(
+                "+".join(f"{coeff}*{var}_readback" for coeff, var in terms)
+            )
+            c.units = units
 
         self.data.flush()
 
@@ -130,7 +144,10 @@ class GenWT5(CallbackBase):
 
             # transform (axes make filling harder than it needs to be)
             self.data.transform(
-                *(f"{x}_readback" for x in self.start_doc["motors"][: len(self.scan_shape)]),
+                *(
+                    f"{x}_readback"
+                    for x in self.start_doc["motors"][: len(self.scan_shape)]
+                ),
                 *self.dims,
             )
 
@@ -142,14 +159,24 @@ class GenWT5(CallbackBase):
                         continue
                     try:
                         wt.artists.quick2D(
-                            self.data, channel=chan, autosave=True, save_directory=self.run_dir, fname=chan
+                            self.data,
+                            channel=chan,
+                            autosave=True,
+                            save_directory=self.run_dir,
+                            fname=chan,
                         )
                     except wt.exceptions.DimensionalityError:
                         wt.artists.quick1D(
-                            self.data, channel=chan, autosave=True, save_directory=self.run_dir, fname=chan
+                            self.data,
+                            channel=chan,
+                            autosave=True,
+                            save_directory=self.run_dir,
+                            fname=chan,
                         )
 
-            with open(self.run_dir / f"{self.descriptor_doc['name']} tree.txt", "wt") as f:
+            with open(
+                self.run_dir / f"{self.descriptor_doc['name']} tree.txt", "wt"
+            ) as f:
                 with contextlib.redirect_stdout(f):
                     self.data.print_tree(verbose=True)
         finally:
