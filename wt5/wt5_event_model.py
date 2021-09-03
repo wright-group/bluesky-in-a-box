@@ -56,6 +56,11 @@ class GenWT5(CallbackBase):
             edit_local=True,
         )
 
+        for k, v in self.start_doc.items():
+            try:
+                self.data.attrs[k] = v
+            except:
+                print(f"Skipping key {repr(k)} from start document in metadata because it cannot be placed in HDF5 attrs")
         self.data.attrs["created"] = wt.kit.TimeStamp(self.start_doc["time"]).RFC3339
 
         # compute full shape, channel shapes
@@ -94,10 +99,13 @@ class GenWT5(CallbackBase):
                 self.data.create_variable(k, shape=chan_shape, units=units)
             else:
                 self.data.create_channel(k, shape=chan_shape, units=units)
-            # fill out var md
+            for vk, v in self.descriptor_doc["data_keys"][k].items():
+                if vk in ("shape", "units", "dtype"):
+                    continue
+                self.data[k].attrs[vk] = v
+
         self.data.flush()
 
-        # fill md
         # what to do about md that is nested... attrs doesn't like that
         # What to do about lower dimensional axes... not trivial... could parse out from plan pattern, I guess... I think that is the intended way...
 
