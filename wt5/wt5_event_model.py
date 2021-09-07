@@ -5,6 +5,7 @@ import pathlib
 from bluesky.callbacks.zmq import RemoteDispatcher
 from bluesky.callbacks import CallbackBase
 import numpy as np
+import toolz
 import WrightTools as wt
 
 
@@ -109,6 +110,16 @@ class GenWT5(CallbackBase):
                     continue
                 self.data[k].attrs[vk] = v
 
+        if "plan_pattern" in self.start_doc:
+            if self.start_doc["plan_pattern"] == "outer_product":
+                add_outer_product_axes(self.data, self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+            elif self.start_doc["plan_pattern"] == "outer_list_product":
+                add_outer_list_product_axes(self.data, self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+            elif self.start_doc["plan_pattern"] == "inner_product":
+                add_inner_product_axes(self.data, self.start_doc["plan_pattern_args"]["args"], self.start_doc["plan_pattern_args"]["num"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+            elif self.start_doc["plan_pattern"] == "inner_list_product":
+                add_inner_list_product_axes(self.data, self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+
         for hw, (units, terms) in self.start_doc.get("plan_constants", {}).items():
             terms.append([-1, hw])
             const_term = -1 * ([t for t in terms if t[1] is None] or [[0]])[0][0]
@@ -187,6 +198,39 @@ class GenWT5(CallbackBase):
         finally:
             self.data.flush()
             self.data.close()
+
+
+def add_outer_product_axes(data, pattern_args, motors, axis_units):
+    for i, (mot, (_, start, stop, npts)) in enumerate(zip(motors, toolz.partition(4, pattern_args))):
+        shape = [1] * data.ndim
+        shape[i] = npts
+        arr = np.linspace(start, stop, npts)
+        arr = arr.reshape(tuple(shape))
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
+
+def add_outer_list_product_axes(data, pattern_args, motors, axis_units):
+    for i, (mot, (_, lis)) in enumerate(zip(motors, toolz.partition(2, pattern_args))):
+        shape = [1] * data.ndim
+        shape[i] = len(lis)
+        arr = np.array(lis)
+        arr = arr.reshape(tuple(shape))
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
+
+def add_inner_product_axes(data, pattern_args, npts, motors, axis_units):
+    for mot, (_, start, stop) in zip(motors, toolz.partition(3, pattern_args)):
+        shape = [1] * data.ndim
+        shape[0] = npts
+        arr = np.linspace(start, stop, npts)
+        arr = arr.reshape(tuple(shape))
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
+
+def add_inner_list_product_axes(data, pattern_args, motors, axis_units):
+    for mot, (_, lis) in zip(motors, toolz.partition(2, pattern_args)):
+        shape = [1] * data.ndim
+        shape[0] = len(lis)
+        arr = np.array(lis)
+        arr = arr.reshape(tuple(shape))
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
 
 
 dispatcher = RemoteDispatcher("zmq-proxy:5568")
