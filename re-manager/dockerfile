@@ -22,11 +22,12 @@ ENV HAPPI_CFG /happi.ini
 # re-manager
 RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
 RUN python3 -m pip install git+https://github.com/wright-group/wright-plans@f0feb75
-RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic@instrument_missing
+RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic@4b4f3cb
 COPY ./startup.py ./startup.py
+COPY ./start_re.sh ./start_re.sh
 #COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml
 COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
 RUN qserver-list-plans-devices --startup-script startup.py
 
 # start
-CMD ["/usr/local/bin/start-re-manager", "--databroker-config=mongo", "--startup-script=./startup.py", "--existing-plans-devices=./existing_plans_and_devices.yaml", "--user-group-permissions=./user_group_permissions.yaml", "--zmq-data-proxy-addr", "zmq-proxy:5567", "--redis-addr", "redis:6379"]
+CMD ["./start_re.sh"]
