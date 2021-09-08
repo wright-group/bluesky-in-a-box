@@ -1,0 +1,8 @@
+FROM python:buster
+RUN python3 -m pip install bluesky pyzmq numpy WrightTools toolz
+COPY ./wt5_event_model.py ./
+CMD ["python3", "-u", "./wt5_event_model.py"]
+
+
+
+
