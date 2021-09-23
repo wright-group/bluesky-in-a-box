@@ -1,15 +1,14 @@
 import happi
 
 from wright_plans import (
-    list_scan,
-    rel_list_scan,
-    list_grid_scan,
-    rel_list_grid_scan,
-    scan_nd,
-    scan,
-    grid_scan,
-    rel_grid_scan,
-    rel_scan,
+    list_scan_wp,
+    rel_list_scan_wp,
+    list_grid_scan_wp,
+    rel_list_grid_scan_wp,
+    scan_wp,
+    grid_scan_wp,
+    rel_grid_scan_wp,
+    rel_scan_wp,
 )
 from wright_plans.attune import motortune
 
@@ -22,8 +21,3 @@ for device in happi_client.all_devices:
         vars()[device.name] = happi_client.load_device(name=device.name)
     except Exception as e:
         print(e)
-
-
-print("STARTUP.PY NAMESPACE")
-for key in dir():
-    print(f"    {key}")
