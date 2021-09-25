@@ -5,7 +5,7 @@ RUN apt update
 RUN apt install git -y
 RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
-RUN python3 -m pip install git+https://github.com/ksunden/bluesky@1bf8fa1b
+RUN python3 -m pip install git+https://github.com/bluesky/bluesky
 RUN python3 -m pip install pint
 RUN python3 -m pip install attune
 ENV PYTHONUNBUFFERED 1
@@ -15,14 +15,14 @@ COPY ./databroker-config.yml /usr/local/share/intake/catalog.yml
 
 # happi
 RUN python3 -m pip install happi
-RUN python3 -m pip install git+https://github.com/ksunden/yaqc-bluesky@has_mapping
+RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
 COPY ./happi.ini /happi.ini
 ENV HAPPI_CFG /happi.ini
 
 # re-manager
 RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
-RUN python3 -m pip install git+https://github.com/wright-group/wright-plans@52cd48d
-RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic@4b4f3cb
+RUN python3 -m pip install git+https://github.com/wright-group/wright-plans
+RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic
 COPY ./startup.py ./startup.py
 COPY ./start_re.sh ./start_re.sh
 #COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml

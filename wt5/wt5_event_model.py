@@ -41,7 +41,7 @@ class GenWT5(CallbackBase):
         self.shape["primary"] = list(
             self.start_doc.get("shape", [self.start_doc.get("num_points")])
         )
-        self.scan_shape["primary"] = tuple(self.shape)
+        self.scan_shape["primary"] = tuple(self.shape["primary"])
 
     def descriptor(self, doc):
         stream_name = doc["name"]
@@ -60,7 +60,7 @@ class GenWT5(CallbackBase):
 
         for k, v in self.start_doc.items():
             try:
-                self.data.attrs[k] = v
+                self.data[stream_name].attrs[k] = v
             except:
                 print(
                     f"Skipping key {repr(k)} from start document in metadata because it cannot be placed in HDF5 attrs"
@@ -93,10 +93,10 @@ class GenWT5(CallbackBase):
         )
         for k, chan_shape in chan_shapes.items():
             chan_shape += [1] * (len(self.shape[stream_name]) - len(chan_shape))
-            units = self.descriptor_doc[stream_name]["data_keys"][k].get("units")
+            units = self.descriptor_docs[stream_name]["data_keys"][k].get("units")
             if (
                 any(
-                    k in self.descriptor_doc[stream_name]["object_keys"][det]
+                    k in self.descriptor_docs[stream_name]["object_keys"][det]
                     for det in self.start_doc.get("detectors")
                 )
                 and not k in self.dims[stream_name]
@@ -104,7 +104,7 @@ class GenWT5(CallbackBase):
                 self.data[stream_name].create_channel(k, shape=chan_shape, units=units)
             else:
                 self.data[stream_name].create_variable(k, shape=chan_shape, units=units)
-            for vk, v in self.descriptor_doc[stream_name]["data_keys"][k].items():
+            for vk, v in self.descriptor_docs[stream_name]["data_keys"][k].items():
                 if vk in ("shape", "units", "dtype"):
                     continue
                 self.data[stream_name][k].attrs[vk] = v
@@ -137,6 +137,7 @@ class GenWT5(CallbackBase):
 
     def event(self, doc):
         stream_name = "primary" # TODO get stream name properly
+        print(self.scan_shape[stream_name])
         pos = np.unravel_index(doc["seq_num"] - 1, self.scan_shape[stream_name])
         self.data[stream_name]["labtime"][pos + (...,)] = doc["time"]
         for var, entry in doc["data"].items():
@@ -174,7 +175,7 @@ class GenWT5(CallbackBase):
                     self.run_dir / f"{name} tree.txt", "wt"
                 ) as f:
                     with contextlib.redirect_stdout(f):
-                        self.data["name"].print_tree(verbose=True)
+                        self.data[name].print_tree(verbose=True)
 
                 for dev, hints in descriptor_doc["hints"].items():
                     for chan in hints["fields"]:
@@ -196,10 +197,10 @@ class GenWT5(CallbackBase):
                                 save_directory=self.run_dir,
                                 fname=chan,
                             )
-            finally:
-                for d in self.data.values():
-                    d.flush()
-                    d.close()
+        finally:
+            for d in self.data.values():
+                d.flush()
+                d.close()
 
 
 def add_outer_product_axes(data, pattern_args, motors, axis_units):
