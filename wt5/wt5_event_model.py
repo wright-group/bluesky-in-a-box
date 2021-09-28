@@ -113,7 +113,7 @@ class GenWT5(CallbackBase):
                     continue
                 self.data[stream_name][k].attrs[vk] = v
 
-        if "plan_pattern" in self.start_doc:
+        if "plan_pattern" in self.start_doc and stream_name == "primary":
             if self.start_doc["plan_pattern"] == "outer_product":
                 add_outer_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
             elif self.start_doc["plan_pattern"] == "outer_list_product":
@@ -133,6 +133,16 @@ class GenWT5(CallbackBase):
                 "+".join(f"{coeff}*{var}_readback" for coeff, var in terms)
             )
             c.units = units
+
+        if stream_name == "primary" and "baseline" in self.data:
+            primary = self.data["primary"]
+            baseline = self.data["baseline"]
+
+            for var in baseline.variable_names:
+                if not var in primary:
+                    val = baseline[var][:1]
+                    val = val.reshape((1,) * len(self.shape["primary"]))
+                    primary.create_variable(values=val, **baseline[var].attrs)
 
         self.data[stream_name].flush()
 
