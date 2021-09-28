@@ -28,4 +28,13 @@ for device in happi_client.all_items:
     except Exception as e:
         print(e)
 
+list_scan_wp = baseline_decorator(movables)(list_scan_wp)
+rel_list_scan_wp = baseline_decorator(movables)(rel_list_scan_wp)
+list_grid_scan_wp = baseline_decorator(movables)(list_grid_scan_wp)
+rel_list_grid_scan_wp = baseline_decorator(movables)(rel_list_grid_scan_wp)
+scan_wp = baseline_decorator(movables)(scan_wp)
 grid_scan_wp = baseline_decorator(movables)(grid_scan_wp)
+rel_grid_scan_wp = baseline_decorator(movables)(rel_grid_scan_wp)
+rel_scan_wp = baseline_decorator(movables)(rel_scan_wp)
+motortune = baseline_decorator(movables)(motortune)
+count = baseline_decorator(movables)(count)
