@@ -13,11 +13,19 @@ from wright_plans import (
 from wright_plans.attune import motortune
 
 from bluesky.plans import count
+from bluesky.preprocessors import baseline_decorator
+from bluesky.protocols import Movable
 
 happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
 
-for device in happi_client.all_devices:
+movables = []
+
+for device in happi_client.all_items:
     try:
         vars()[device.name] = happi_client.load_device(name=device.name)
+        if isinstance(vars()[device.name], Movable):
+            movables.append(vars()[device.name])
     except Exception as e:
         print(e)
+
+grid_scan_wp = baseline_decorator(movables)(grid_scan_wp)

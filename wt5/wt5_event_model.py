@@ -14,6 +14,7 @@ class GenWT5(CallbackBase):
         self.start_doc = None
         self.stop_doc = None
         self.descriptor_docs = {}
+        self.descriptor_uid_to_docs = {}
         self.data = {}
         self.shape = {}
         self.scan_shape = {}
@@ -42,10 +43,13 @@ class GenWT5(CallbackBase):
             self.start_doc.get("shape", [self.start_doc.get("num_points")])
         )
         self.scan_shape["primary"] = tuple(self.shape["primary"])
+        self.shape["baseline"] = (2,)
+        self.scan_shape["baseline"] = (2,)
 
     def descriptor(self, doc):
         stream_name = doc["name"]
         self.descriptor_docs[stream_name] = doc
+        self.descriptor_uid_to_docs[doc["uid"]] = doc
 
         with open(
             self.bluesky_doc_dir / f"{stream_name} descriptor.json", "wt"
@@ -96,7 +100,7 @@ class GenWT5(CallbackBase):
             units = self.descriptor_docs[stream_name]["data_keys"][k].get("units")
             if (
                 any(
-                    k in self.descriptor_docs[stream_name]["object_keys"][det]
+                    k in self.descriptor_docs[stream_name]["object_keys"].get(det, {})
                     for det in self.start_doc.get("detectors")
                 )
                 and not k in self.dims[stream_name]
@@ -104,7 +108,7 @@ class GenWT5(CallbackBase):
                 self.data[stream_name].create_channel(k, shape=chan_shape, units=units)
             else:
                 self.data[stream_name].create_variable(k, shape=chan_shape, units=units)
-            for vk, v in self.descriptor_docs[stream_name]["data_keys"][k].items():
+            for vk, v in self.descriptor_docs[stream_name]["data_keys"].get(k, {}).items():
                 if vk in ("shape", "units", "dtype"):
                     continue
                 self.data[stream_name][k].attrs[vk] = v
@@ -136,8 +140,7 @@ class GenWT5(CallbackBase):
         # What to do about lower dimensional axes... not trivial... could parse out from plan pattern, I guess... I think that is the intended way...
 
     def event(self, doc):
-        stream_name = "primary" # TODO get stream name properly
-        print(self.scan_shape[stream_name])
+        stream_name = self.descriptor_uid_to_docs[doc["descriptor"]]["name"]
         pos = np.unravel_index(doc["seq_num"] - 1, self.scan_shape[stream_name])
         self.data[stream_name]["labtime"][pos + (...,)] = doc["time"]
         for var, entry in doc["data"].items():
