@@ -45,6 +45,10 @@ class GenWT5(CallbackBase):
         self.scan_shape["primary"] = tuple(self.shape["primary"])
         self.shape["baseline"] = (2,)
         self.scan_shape["baseline"] = (2,)
+        # At present only "primary" and "baseline" have shapes associated
+        # A shape is required to actually make the data object for the stream
+        # Future usecases of additional streams (e.g. flyers) will need to deal
+        # with their shapes appropriately.  KFS 2021-09-29
 
     def descriptor(self, doc):
         stream_name = doc["name"]
@@ -114,6 +118,7 @@ class GenWT5(CallbackBase):
                 self.data[stream_name][k].attrs[vk] = v
 
         if "plan_pattern" in self.start_doc and stream_name == "primary":
+            # Currently only applied to "primary", this may need further fleshing out for additional stream types
             if self.start_doc["plan_pattern"] == "outer_product":
                 add_outer_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
             elif self.start_doc["plan_pattern"] == "outer_list_product":
@@ -134,6 +139,11 @@ class GenWT5(CallbackBase):
             )
             c.units = units
 
+        # Add stationary hardware to the primary dataset
+        # This assumes the order is baseline descriptor -> baseline reading -> primary descriptor
+        # because the data is read from the wt5 file. This is the current order and is unlikely to
+        # be changed, as it is the natural order for the way baseline works, but if e.g. both
+        # descriptors come before the baseline event, the data would not be ready here.
         if stream_name == "primary" and "baseline" in self.data:
             primary = self.data["primary"]
             baseline = self.data["baseline"]
