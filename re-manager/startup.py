@@ -1,29 +1,40 @@
 import happi
 
 from wright_plans import (
-    list_scan,
-    rel_list_scan,
-    list_grid_scan,
-    rel_list_grid_scan,
-    scan_nd,
-    scan,
-    grid_scan,
-    rel_grid_scan,
-    rel_scan,
+    list_scan_wp,
+    rel_list_scan_wp,
+    list_grid_scan_wp,
+    rel_list_grid_scan_wp,
+    scan_wp,
+    grid_scan_wp,
+    rel_grid_scan_wp,
+    rel_scan_wp,
 )
 from wright_plans.attune import motortune
 
 from bluesky.plans import count
+from bluesky.preprocessors import baseline_decorator
+from bluesky.protocols import Movable
 
 happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
 
-for device in happi_client.all_devices:
+movables = []
+
+for device in happi_client.all_items:
     try:
         vars()[device.name] = happi_client.load_device(name=device.name)
+        if isinstance(vars()[device.name], Movable):
+            movables.append(vars()[device.name])
     except Exception as e:
         print(e)
 
-
-print("STARTUP.PY NAMESPACE")
-for key in dir():
-    print(f"    {key}")
+list_scan_wp = baseline_decorator(movables)(list_scan_wp)
+rel_list_scan_wp = baseline_decorator(movables)(rel_list_scan_wp)
+list_grid_scan_wp = baseline_decorator(movables)(list_grid_scan_wp)
+rel_list_grid_scan_wp = baseline_decorator(movables)(rel_list_grid_scan_wp)
+scan_wp = baseline_decorator(movables)(scan_wp)
+grid_scan_wp = baseline_decorator(movables)(grid_scan_wp)
+rel_grid_scan_wp = baseline_decorator(movables)(rel_grid_scan_wp)
+rel_scan_wp = baseline_decorator(movables)(rel_scan_wp)
+motortune = baseline_decorator(movables)(motortune)
+count = baseline_decorator(movables)(count)
