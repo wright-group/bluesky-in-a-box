@@ -21,8 +21,7 @@ ENV HAPPI_CFG /happi.ini
 
 # re-manager
 RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
-RUN python3 -m pip install git+https://github.com/wright-group/wright-plans
-RUN python3 -m pip install git+https://github.com/wright-group/bluesky-autonomic
+RUN python3 -m pip install git+https://github.com/wright-group/wright-plans@1d6c296
 COPY ./startup.py ./startup.py
 COPY ./start_re.sh ./start_re.sh
 #COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml
