@@ -2,6 +2,8 @@
 
 Bluesky services in docker containers, for use in Wright Group experimental orchestration.
 
+![architecture](./bluesky-in-a-box-architecture.svg)
+
 ## ports
 
 This application uses the following ports:
