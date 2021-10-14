@@ -37,11 +37,11 @@
      inkscape:zoom="0.74386223"
      inkscape:cx="32.936206"
      inkscape:cy="431.53152"
-     inkscape:window-width="1920"
-     inkscape:window-height="1021"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
+     inkscape:window-width="1280"
+     inkscape:window-height="671"
+     inkscape:window-x="2806"
+     inkscape:window-y="265"
+     inkscape:window-maximized="0"
      inkscape:current-layer="layer1">
     <sodipodi:guide
        position="-210.7005,238.18566"
@@ -440,21 +440,21 @@
        x="92.247261"
        y="181.06657" />
     <rect
-       style="fill:#000000;stroke-width:0.216517"
+       style="fill:#800000;stroke-width:0.216517"
        id="rect365"
        width="1"
        height="1"
        x="102.72346"
        y="184.57137" />
     <rect
-       style="fill:#000000;stroke-width:0.206253"
+       style="fill:#800000;stroke-width:0.206253"
        id="rect367"
        width="1"
        height="1"
        x="105.31216"
        y="184.57137" />
     <rect
-       style="fill:#000000;stroke-width:0.204203"
+       style="fill:#800000;stroke-width:0.204203"
        id="rect369"
        width="1"
        height="1"
@@ -462,17 +462,17 @@
        y="184.57137" />
     <text
        xml:space="preserve"
-       style="font-size:6.35px;line-height:1.25;font-family:'Liberation Mono';-inkscape-font-specification:'Liberation Mono';text-align:center;text-anchor:middle;stroke-width:0.264583"
+       style="font-size:6.35px;line-height:1.25;font-family:'Liberation Mono';-inkscape-font-specification:'Liberation Mono';text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#550000"
        x="100.85194"
        y="194.18265"
        id="text23551"><tspan
          sodipodi:role="line"
          id="tspan23549"
-         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#550000"
          x="100.85194"
          y="194.18265">yaq</tspan><tspan
          sodipodi:role="line"
-         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#550000"
          x="100.85194"
          y="202.12015"
          id="tspan25619">daemons</tspan></text>
