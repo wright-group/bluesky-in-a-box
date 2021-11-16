@@ -17,6 +17,12 @@ services:
     depends_on:
       - "redis"
       - "zmq-proxy"
+  hwproxy:
+    build: ./hwproxy
+    ports:
+      - 60620:60620
+    volumes:
+      - ${HAPPI_DB_PATH}:/happi_db.json
   zmq-proxy:
     build: ./zmq-proxy
     ports:

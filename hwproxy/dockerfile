@@ -1,0 +1,21 @@
+FROM debian:bullseye
+
+# python
+RUN apt update
+RUN apt install git -y
+RUN apt install librdkafka-dev -y
+RUN apt install python3-pip -y
+RUN python3 -m pip install git+https://github.com/bluesky/bluesky
+RUN python3 -m pip install wright-plans attune
+
+# happi
+RUN python3 -m pip install happi
+RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
+COPY ./happi.ini /happi.ini
+ENV HAPPI_CFG /happi.ini
+
+# re-manager
+RUN python3 -m pip install bluesky-hwproxy
+COPY ./startup.py ./startup.py
+# start
+CMD ["start-hwproxy-server", "--startup-script", "startup.py"]
