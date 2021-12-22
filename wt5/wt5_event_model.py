@@ -135,7 +135,7 @@ class GenWT5(CallbackBase):
             if const_term < 0:
                 terms = [[-1 * coeff, var] for coeff, var in terms]
             c = self.data[stream_name].create_constant(
-                "+".join(f"{coeff}*{var}_readback" for coeff, var in terms)
+                "+".join(f"{coeff}*{var}" for coeff, var in terms)
             )
             c.units = units
 
@@ -182,10 +182,7 @@ class GenWT5(CallbackBase):
             # transform (axes make filling harder than it needs to be)
             try:
                 self.data["primary"].transform(
-                    *(
-                        f"{x}_readback"
-                        for x in self.start_doc["motors"][: len(self.scan_shape["primary"])]
-                    ),
+                    *self.start_doc["motors"][: len(self.scan_shape["primary"])],
                     *self.dims["primary"],
                 )
             except KeyError:
