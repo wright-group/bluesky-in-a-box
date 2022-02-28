@@ -10,7 +10,7 @@ RUN python3 -m pip install wright-plans attune
 
 # happi
 RUN python3 -m pip install happi
-RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
+RUN python3 -m pip install git+https://github.com/ksunden/yaqc-bluesky@426dfced
 COPY ./happi.ini /happi.ini
 ENV HAPPI_CFG /happi.ini
 
