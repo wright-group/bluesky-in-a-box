@@ -14,6 +14,6 @@ user_groups:
     forbidden_plans:
       - null  # Nothing is forbidden
     allowed_devices:
-      - ":.*"  # A different way to allow all
+      - ":.*:?.*"  # A different way to allow all
     forbidden_devices:
       - null  # Nothing is forbidden
