@@ -1,3 +1,4 @@
+import socket
 import happi
 
 from wright_plans import (
@@ -26,9 +27,18 @@ happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
 
 movables = []
 
+# Host mapped name on windows and mac
+host = "host.internal.docker" 
+try:
+    socket.gethostbyname(host)
+except socket.gaierror:
+    host = "172.17.0.1"  # Default host ip on Linux
+
 for device in happi_client.all_items:
     try:
-        vars()[device.name] = happi_client.load_device(name=device.name)
+        if device.host in ("localhost", "127.0.0.1"):
+            device.host = host
+        vars()[device.name] = happi.from_container(device)
         if isinstance(vars()[device.name], Movable):
             movables.append(vars()[device.name])
     except Exception as e:
