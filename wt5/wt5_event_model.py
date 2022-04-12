@@ -100,6 +100,10 @@ class GenWT5(CallbackBase):
             units="s",
         )
         for k, chan_shape in chan_shapes.items():
+            dtype = self.descriptor_docs[stream_name]["data_keys"][k]["dtype"]
+            if dtype not in ["number", "array"]:
+                print(f"Skipping {k} because we do not deal with dtype {dtype}")
+                continue
             chan_shape += [1] * (len(self.shape[stream_name]) - len(chan_shape))
             units = self.descriptor_docs[stream_name]["data_keys"][k].get("units")
             if (
@@ -164,6 +168,8 @@ class GenWT5(CallbackBase):
         pos = np.unravel_index(doc["seq_num"] - 1, self.scan_shape[stream_name])
         self.data[stream_name]["labtime"][pos + (...,)] = doc["time"]
         for var, entry in doc["data"].items():
+            if var not in self.data[stream_name]:
+                continue
             pos_var = [slice(None) if j > 1 else 0 for j in self.data[stream_name][var].shape]
             pos_var[: len(self.scan_shape[stream_name])] = pos
             self.data[stream_name][var][tuple(pos_var)] = entry
