@@ -5,7 +5,7 @@ RUN apt update
 RUN apt install git -y
 RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
-RUN python3 -m pip install git+https://github.com/bluesky/bluesky
+RUN python3 -m pip install bluesky
 RUN python3 -m pip install pint
 RUN python3 -m pip install attune
 ENV PYTHONUNBUFFERED 1
