@@ -31,7 +31,7 @@ movables = []
 all_device_keys = {}
 
 # Host mapped name on windows and mac
-host = "host.internal.docker" 
+host = "host.docker.internal" 
 try:
     socket.gethostbyname(host)
 except socket.gaierror:

@@ -20,7 +20,7 @@ class GenWT5(CallbackBase):
         self.scan_shape = {}
         self.run_dir = None
         self.bluesky_doc_dir = None
-        self.dims = {}
+        self.detector_axes = {}
 
     def start(self, doc):
         self.start_doc = doc
@@ -78,21 +78,27 @@ class GenWT5(CallbackBase):
         # compute full shape, channel shapes
         # handling of dims may need adjustment for cameras...
         chan_shapes = {}
-        self.dims[stream_name] = {}
+        dim_shapes = {}
+        self.detector_axes[stream_name] = []
         for k, desc in doc["data_keys"].items():
             chan_shape = desc.get("shape", [])
             chan_dims = desc.get("dims", [])
-            if any(dim in self.dims[stream_name] for dim in chan_dims):
-                chan_shapes[k] = self.dims[stream_name][chan_dims[0]]
-            else:
-                chan_shapes[k] = (
-                    list(self.scan_shape[stream_name])
-                    + [1] * (len(self.shape[stream_name]) - len(self.scan_shape[stream_name]))
-                    + list(chan_shape)
-                )
-                self.shape[stream_name] += desc.get("shape", [])
-                for dim in chan_dims:
-                    self.dims[stream_name][dim] = chan_shapes[k]
+            for d, s in zip(chan_dims, chan_shape):
+                dim_shapes[d] = s
+        dim_shapes = {k: dim_shapes[k] for k in sorted(dim_shapes)}
+        for i, (k, v) in enumerate(dim_shapes.items()):
+            sh = [1] * len(dim_shapes)
+            sh[i] = v
+            dim_shapes[k] = sh
+            self.shape[stream_name] += [v]
+
+        def joint_shape(*args):
+            return tuple(max(a) for a in zip(*args)) 
+
+        for k, desc in doc["data_keys"].items():
+            chan_shapes[k] = list(self.scan_shape[stream_name] + joint_shape(*[dim_shapes[i] for i in desc.get("dims", [])]))
+            if desc.get("independent", False):
+                self.detector_axes[stream_name].append(k)
 
         self.data[stream_name].create_variable(
             "labtime",
@@ -111,7 +117,7 @@ class GenWT5(CallbackBase):
                     k in self.descriptor_docs[stream_name]["object_keys"].get(det, {})
                     for det in self.start_doc.get("detectors")
                 )
-                and not k in self.dims[stream_name]
+                and not k in self.detector_axes[stream_name]
             ):
                 self.data[stream_name].create_channel(k, shape=chan_shape, units=units)
             else:
@@ -132,16 +138,17 @@ class GenWT5(CallbackBase):
             elif self.start_doc["plan_pattern"] == "inner_list_product":
                 add_inner_list_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
 
-        for hw, (units, terms) in self.start_doc.get("plan_constants", {}).items():
-            terms.append([-1, hw])
-            const_term = -1 * ([t for t in terms if t[1] is None] or [[0]])[0][0]
-            terms = list(filter(lambda x: x[1] is not None, terms))
-            if const_term < 0:
-                terms = [[-1 * coeff, var] for coeff, var in terms]
-            c = self.data[stream_name].create_constant(
-                "+".join(f"{coeff}*{var}" for coeff, var in terms)
-            )
-            c.units = units
+        if stream_name == "primary":
+            for hw, (units, terms) in self.start_doc.get("plan_constants", {}).items():
+                terms.append([-1, hw])
+                const_term = -1 * ([t for t in terms if t[1] is None] or [[0]])[0][0]
+                terms = list(filter(lambda x: x[1] is not None, terms))
+                if const_term < 0:
+                    terms = [[-1 * coeff, var] for coeff, var in terms]
+                c = self.data[stream_name].create_constant(
+                    "+".join(f"{coeff}*{var}" for coeff, var in terms)
+                )
+                c.units = units
 
         # Add stationary hardware to the primary dataset
         # This assumes the order is baseline descriptor -> baseline reading -> primary descriptor
@@ -189,10 +196,10 @@ class GenWT5(CallbackBase):
             try:
                 self.data["primary"].transform(
                     *self.start_doc["motors"][: len(self.scan_shape["primary"])],
-                    *self.dims["primary"],
+                    *self.detector_axes["primary"],
                 )
             except KeyError:
-                self.data["primary"].transform("labtime", *self.dims["primary"])
+                self.data["primary"].transform("labtime", *self.detector_axes["primary"])
 
             self.data["primary"].flush()
 
@@ -207,10 +214,15 @@ class GenWT5(CallbackBase):
                     for chan in hints["fields"]:
                         if not chan in self.data[name].channel_names:
                             continue
+                        if self.data[name].ndim > 3:
+                            print(f"Not plotting due to ndim {self.data[name].ndim}")
+                        # TODO re-transform for each plot, transform back at the end
                         try:
                             wt.artists.quick2D(
                                 self.data[name],
                                 channel=chan,
+                                xaxis = -2,
+                                yaxis = -1,
                                 autosave=True,
                                 save_directory=self.run_dir,
                                 fname=chan,
@@ -219,6 +231,7 @@ class GenWT5(CallbackBase):
                             wt.artists.quick1D(
                                 self.data[name],
                                 channel=chan,
+                                axis = -1,
                                 autosave=True,
                                 save_directory=self.run_dir,
                                 fname=chan,

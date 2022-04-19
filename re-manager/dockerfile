@@ -15,7 +15,7 @@ COPY ./databroker-config.yml /usr/local/share/intake/catalog.yml
 
 # happi
 RUN python3 -m pip install happi
-RUN python3 -m pip install git+https://github.com/bluesky/yaqc-bluesky
+RUN python3 -m pip install git+https://github.com/ksunden/yaqc-bluesky@ae05e81
 COPY ./happi.ini /happi.ini
 ENV HAPPI_CFG /happi.ini
 
