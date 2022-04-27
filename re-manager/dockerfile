@@ -5,27 +5,19 @@ RUN apt update
 RUN apt install git -y
 RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
-RUN python3 -m pip install bluesky
-RUN python3 -m pip install pint
-RUN python3 -m pip install attune
-ENV PYTHONUNBUFFERED 1
 
-# databroker
 COPY ./databroker-config.yml /usr/local/share/intake/catalog.yml
-
-# happi
-RUN python3 -m pip install happi
-RUN python3 -m pip install git+https://github.com/ksunden/yaqc-bluesky@ae05e81
 COPY ./happi.ini /happi.ini
-ENV HAPPI_CFG /happi.ini
-
-# re-manager
-RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
-RUN python3 -m pip install git+https://github.com/wright-group/wright-plans
 COPY ./startup.py ./startup.py
 COPY ./start_re.sh ./start_re.sh
-#COPY ./existing_plans_and_devices.yaml ./existing_plans_and_devices.yaml
 COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
+COPY ./requirements.txt /requirements.txt
+
+RUN python3 -m pip install -r requirements.txt
+
+ENV PYTHONUNBUFFERED 1
+ENV HAPPI_CFG /happi.ini
+
 RUN qserver-list-plans-devices --startup-script startup.py
 
 # start

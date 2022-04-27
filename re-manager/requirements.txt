@@ -1,0 +1,7 @@
+bluesky==1.8.3
+pint==0.19.2
+attune==0.4.4
+happi==1.10.1
+yaqc-bluesky==2022.4.1
+bluesky-queueserver==0.0.14
+wright-plans==2022.4.0
