@@ -3,7 +3,3 @@ COPY ./requirements.txt ./
 RUN python3 -m pip install -r requirements.txt
 COPY ./wt5_event_model.py ./
 CMD ["python3", "-u", "./wt5_event_model.py"]
-
-
-
-

@@ -1,14 +1,17 @@
 version: "3.7"
 services:
   mongo:
+    env_file: .env
     image: mongo:latest
     ports:
       - 27017:27017
   redis:
+    env_file: .env
     image: redis:latest
     ports:
       - 6379:6379
   re-manager:
+    env_file: .env
     build: ./re-manager
     ports:
       - 60615:60615
@@ -18,17 +21,20 @@ services:
       - "redis"
       - "zmq-proxy"
   hwproxy:
+    env_file: .env
     build: ./hwproxy
     ports:
       - 60620:60620
     volumes:
       - ${HAPPI_DB_PATH}:/happi_db.json
   zmq-proxy:
+    env_file: .env
     build: ./zmq-proxy
     ports:
       - 5567:5567
       - 5568:5568
   wt5:
+    env_file: .env
     build: ./wt5
     depends_on:
       - "zmq-proxy"
