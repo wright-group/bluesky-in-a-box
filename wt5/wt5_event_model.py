@@ -21,6 +21,7 @@ class GenWT5(CallbackBase):
         self.run_dir = None
         self.bluesky_doc_dir = None
         self.detector_axes = {}
+        self.axis_units = {}
 
     def start(self, doc):
         self.start_doc = doc
@@ -121,22 +122,24 @@ class GenWT5(CallbackBase):
             ):
                 self.data[stream_name].create_channel(k, shape=chan_shape, units=units)
             else:
-                self.data[stream_name].create_variable(k, shape=chan_shape, units=units)
+                var = self.data[stream_name].create_variable(k, shape=chan_shape, units=units)
+                var.label = k
             for vk, v in self.descriptor_docs[stream_name]["data_keys"].get(k, {}).items():
                 if vk in ("shape", "units", "dtype"):
                     continue
                 self.data[stream_name][k].attrs[vk] = v
 
+        self.axis_units = self.start_doc.get("plan_axis_units", {})
         if "plan_pattern" in self.start_doc and stream_name == "primary":
             # Currently only applied to "primary", this may need further fleshing out for additional stream types
             if self.start_doc["plan_pattern"] == "outer_product":
-                add_outer_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+                add_outer_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.axis_units)
             elif self.start_doc["plan_pattern"] == "outer_list_product":
-                add_outer_list_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+                add_outer_list_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.axis_units)
             elif self.start_doc["plan_pattern"] == "inner_product":
-                add_inner_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["plan_pattern_args"]["num"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+                add_inner_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["plan_pattern_args"]["num"], self.start_doc["motors"], self.axis_units)
             elif self.start_doc["plan_pattern"] == "inner_list_product":
-                add_inner_list_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.start_doc["plan_axis_units"])
+                add_inner_list_product_axes(self.data[stream_name], self.start_doc["plan_pattern_args"]["args"], self.start_doc["motors"], self.axis_units)
 
         if stream_name == "primary":
             for hw, (units, terms) in self.start_doc.get("plan_constants", {}).items():
@@ -200,6 +203,10 @@ class GenWT5(CallbackBase):
                 )
             except KeyError:
                 self.data["primary"].transform("labtime", *self.detector_axes["primary"])
+
+            for ax in self.data["primary"].axes:
+                if ax.natural_name in self.axis_units:
+                    ax.units = self.axis_units[ax.natural_name]
 
             self.data["primary"].flush()
 
