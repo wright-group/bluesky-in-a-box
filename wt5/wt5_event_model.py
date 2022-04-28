@@ -143,15 +143,8 @@ class GenWT5(CallbackBase):
 
         if stream_name == "primary":
             for hw, (units, terms) in self.start_doc.get("plan_constants", {}).items():
-                terms.append([-1, hw])
-                const_term = -1 * ([t for t in terms if t[1] is None] or [[0]])[0][0]
-                terms = list(filter(lambda x: x[1] is not None, terms))
-                if const_term < 0:
-                    terms = [[-1 * coeff, var] for coeff, var in terms]
-                c = self.data[stream_name].create_constant(
-                    "+".join(f"{coeff}*{var}" for coeff, var in terms)
-                )
-                c.units = units
+                if len(terms) == 1 and terms[0][1] is None:
+                    c = self.data[stream_name].create_constant(terms[0][0], units=units)
 
         # Add stationary hardware to the primary dataset
         # This assumes the order is baseline descriptor -> baseline reading -> primary descriptor
