@@ -8,6 +8,12 @@ import numpy as np
 import toolz
 import WrightTools as wt
 
+class NumpyArrayEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
+
 
 class GenWT5(CallbackBase):
     def __init__(self):
@@ -38,7 +44,7 @@ class GenWT5(CallbackBase):
         self.bluesky_doc_dir.mkdir(exist_ok=True)
 
         with open(self.bluesky_doc_dir / "start.json", "wt") as f:
-            json.dump(self.start_doc, f, indent=2)
+            json.dump(self.start_doc, f, indent=2, cls=NumpyArrayEncoder)
 
         self.shape["primary"] = list(
             self.start_doc.get("shape", [self.start_doc.get("num_points")])
@@ -59,7 +65,7 @@ class GenWT5(CallbackBase):
         with open(
             self.bluesky_doc_dir / f"{stream_name} descriptor.json", "wt"
         ) as f:
-            json.dump(doc, f, indent=2)
+            json.dump(doc, f, indent=2, cls=NumpyArrayEncoder)
 
         self.data[stream_name] = wt.Data(
             self.run_dir / f"{stream_name}.wt5",
@@ -183,7 +189,7 @@ class GenWT5(CallbackBase):
             self.stop_doc = doc
 
             with open(self.bluesky_doc_dir / "stop.json", "wt") as f:
-                json.dump(self.stop_doc, f, indent=2)
+                json.dump(self.stop_doc, f, indent=2, cls=NumpyArrayEncoder)
 
             # end timestamp
             # exit_status/reason
