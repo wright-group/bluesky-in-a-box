@@ -1,6 +1,7 @@
 import contextlib
 import json
 import pathlib
+import traceback
 
 from bluesky.callbacks.zmq import RemoteDispatcher
 from bluesky.callbacks import CallbackBase
@@ -14,6 +15,18 @@ class NumpyArrayEncoder(json.JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
+def orthogonal(*shapes):
+    ret = True
+    for elems in zip(*shapes):
+        elems = np.array(elems)
+        # Check for non ones where the first entry is one
+        # This happens for e.g. array detectors which are funcitonaly orthogonal but still have the scan shape
+        if elems[0] == 1 and (elems > 1).any():
+            return True
+        # Don't return immediately to allow the first condition to short circuit true
+        if np.sum(elems > 1) > 1:
+            ret = False
+    return ret
 
 class GenWT5(CallbackBase):
     def __init__(self):
@@ -216,32 +229,40 @@ class GenWT5(CallbackBase):
                     with contextlib.redirect_stdout(f):
                         self.data[name].print_tree(verbose=True)
 
+                transform = self.data[name].axis_names
+
                 for dev, hints in descriptor_doc["hints"].items():
                     for chan in hints["fields"]:
-                        if not chan in self.data[name].channel_names:
-                            continue
-                        if self.data[name].ndim > 3:
-                            print(f"Not plotting due to ndim {self.data[name].ndim}")
-                        # TODO re-transform for each plot, transform back at the end
                         try:
-                            wt.artists.quick2D(
-                                self.data[name],
-                                channel=chan,
-                                xaxis = -2,
-                                yaxis = -1,
-                                autosave=True,
-                                save_directory=self.run_dir,
-                                fname=chan,
-                            )
-                        except (wt.exceptions.DimensionalityError, IndexError):
-                            wt.artists.quick1D(
-                                self.data[name],
-                                channel=chan,
-                                axis = -1,
-                                autosave=True,
-                                save_directory=self.run_dir,
-                                fname=chan,
-                            )
+                            if not chan in self.data[name].channel_names:
+                                continue
+                            if np.sum(np.array(self.data[name][chan].shape) > 1) > 3:
+                                print(f"Not plotting due to ndim {self.data[name][chan].shape}")
+                                continue
+                            self.data[name].transform(*[x for x in transform if not orthogonal(self.data[name][chan].shape, self.data[name][x].shape)])
+                            try:
+                                wt.artists.quick2D(
+                                    self.data[name],
+                                    channel=chan,
+                                    xaxis = -2,
+                                    yaxis = -1,
+                                    autosave=True,
+                                    save_directory=self.run_dir,
+                                    fname=chan,
+                                )
+                            except (wt.exceptions.DimensionalityError, IndexError):
+                                wt.artists.quick1D(
+                                    self.data[name],
+                                    channel=chan,
+                                    axis = -1,
+                                    autosave=True,
+                                    save_directory=self.run_dir,
+                                    fname=chan,
+                                )
+                        except Exception as e:
+                            traceback.print_exc()
+                            print(f"Failed to plot {chan}")
+                self.data[name].transform(*transform)
         finally:
             for d in self.data.values():
                 d.flush()
