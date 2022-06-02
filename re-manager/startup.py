@@ -19,6 +19,7 @@ from wright_plans.attune import (
 )
 
 from bluesky.plans import count
+from bluesky.plan_stubs import mv, sleep
 from bluesky.preprocessors import baseline_decorator
 from bluesky.protocols import Movable
 
