@@ -1,6 +1,7 @@
 import contextlib
 import json
 import pathlib
+import subprocess
 import traceback
 
 from bluesky.callbacks.zmq import RemoteDispatcher
@@ -14,19 +15,6 @@ class NumpyArrayEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
-
-def orthogonal(*shapes):
-    ret = True
-    for elems in zip(*shapes):
-        elems = np.array(elems)
-        # Check for non ones where the first entry is one
-        # This happens for e.g. array detectors which are funcitonaly orthogonal but still have the scan shape
-        if elems[0] == 1 and (elems > 1).any():
-            return True
-        # Don't return immediately to allow the first condition to short circuit true
-        if np.sum(elems > 1) > 1:
-            ret = False
-    return ret
 
 class GenWT5(CallbackBase):
     def __init__(self):
@@ -198,75 +186,47 @@ class GenWT5(CallbackBase):
         self.data[stream_name].flush()
 
     def stop(self, doc):
+        self.stop_doc = doc
+
+        with open(self.bluesky_doc_dir / "stop.json", "wt") as f:
+            json.dump(self.stop_doc, f, indent=2, cls=NumpyArrayEncoder)
+
+        # end timestamp
+        # exit_status/reason
+
+        # transform (axes make filling harder than it needs to be)
         try:
-            self.stop_doc = doc
+            self.data["primary"].transform(
+                *self.start_doc["motors"][: len(self.scan_shape["primary"])],
+                *self.detector_axes["primary"],
+            )
+        except KeyError:
+            self.data["primary"].transform("labtime", *self.detector_axes["primary"])
 
-            with open(self.bluesky_doc_dir / "stop.json", "wt") as f:
-                json.dump(self.stop_doc, f, indent=2, cls=NumpyArrayEncoder)
+        for ax in self.data["primary"].axes:
+            if ax.natural_name in self.axis_units:
+                ax.units = self.axis_units[ax.natural_name]
 
-            # end timestamp
-            # exit_status/reason
+        self.data["primary"].flush()
 
-            # transform (axes make filling harder than it needs to be)
-            try:
-                self.data["primary"].transform(
-                    *self.start_doc["motors"][: len(self.scan_shape["primary"])],
-                    *self.detector_axes["primary"],
-                )
-            except KeyError:
-                self.data["primary"].transform("labtime", *self.detector_axes["primary"])
+        for name, descriptor_doc in self.descriptor_docs.items():
+            with open(
+                self.run_dir / f"{name} tree.txt", "wt"
+            ) as f:
+                with contextlib.redirect_stdout(f):
+                    self.data[name].print_tree(verbose=True)
 
-            for ax in self.data["primary"].axes:
-                if ax.natural_name in self.axis_units:
-                    ax.units = self.axis_units[ax.natural_name]
+            filepath = self.data[name].filepath
+            self.data[name].flush()
+            self.data[name].close()
 
-            self.data["primary"].flush()
-
-            for name, descriptor_doc in self.descriptor_docs.items():
-                with open(
-                    self.run_dir / f"{name} tree.txt", "wt"
-                ) as f:
-                    with contextlib.redirect_stdout(f):
-                        self.data[name].print_tree(verbose=True)
-
-                transform = self.data[name].axis_names
-
-                for dev, hints in descriptor_doc["hints"].items():
-                    for chan in hints["fields"]:
-                        try:
-                            if not chan in self.data[name].channel_names:
-                                continue
-                            if np.sum(np.array(self.data[name][chan].shape) > 1) > 3:
-                                print(f"Not plotting due to ndim {self.data[name][chan].shape}")
-                                continue
-                            self.data[name].transform(*[x for x in transform if not orthogonal(self.data[name][chan].shape, self.data[name][x].shape)])
-                            try:
-                                wt.artists.quick2D(
-                                    self.data[name],
-                                    channel=chan,
-                                    xaxis = -2,
-                                    yaxis = -1,
-                                    autosave=True,
-                                    save_directory=self.run_dir,
-                                    fname=chan,
-                                )
-                            except (wt.exceptions.DimensionalityError, IndexError):
-                                wt.artists.quick1D(
-                                    self.data[name],
-                                    channel=chan,
-                                    axis = -1,
-                                    autosave=True,
-                                    save_directory=self.run_dir,
-                                    fname=chan,
-                                )
-                        except Exception as e:
-                            traceback.print_exc()
-                            print(f"Failed to plot {chan}")
-                self.data[name].transform(*transform)
-        finally:
-            for d in self.data.values():
-                d.flush()
-                d.close()
+            for dev, hints in descriptor_doc["hints"].items():
+                for chan in hints["fields"]:
+                    try:
+                        subprocess.call(["python", "./quick_plot.py", filepath, chan], timeout=10)
+                    except Exception as e:
+                        traceback.print_exc()
+                        print(f"Failed to plot {chan}")
 
 
 def add_outer_product_axes(data, pattern_args, motors, axis_units):
