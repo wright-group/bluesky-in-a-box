@@ -3,5 +3,5 @@ pint==0.19.2
 attune==0.4.4
 happi==1.13.0
 yaqc-bluesky==2022.4.1
-bluesky-queueserver==0.0.14
+bluesky-queueserver==0.0.15
 wright-plans==2022.6.0
