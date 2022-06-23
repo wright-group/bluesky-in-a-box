@@ -230,7 +230,8 @@ class GenWT5(CallbackBase):
 
 
 def add_outer_product_axes(data, pattern_args, motors, axis_units):
-    for i, (mot, (_, start, stop, npts)) in enumerate(zip(motors, toolz.partition(4, pattern_args))):
+    pattern_args.insert(4, False)
+    for i, (mot, (_, start, stop, npts, _)) in enumerate(zip(motors, toolz.partition(5, pattern_args))):
         shape = [1] * data.ndim
         shape[i] = npts
         arr = np.linspace(start, stop, npts)
