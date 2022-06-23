@@ -205,7 +205,7 @@ class GenWT5(CallbackBase):
 
         for ax in self.data["primary"].axes:
             if ax.natural_name in self.axis_units:
-                ax.units = self.axis_units[ax.natural_name]
+                ax.convert(self.axis_units[ax.natural_name])
 
         self.data["primary"].flush()
 
