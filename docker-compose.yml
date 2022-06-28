@@ -15,6 +15,7 @@ services:
     build: ./re-manager
     ports:
       - 60615:60615
+      - 60625:60625
     volumes:
       - ${HAPPI_DB_PATH}:/happi_db.json
     depends_on:
