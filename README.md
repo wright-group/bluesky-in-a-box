@@ -12,8 +12,9 @@ This application uses the following ports:
 | :---- | :------- | :---------------- |
 | 27017 | mongo    | databroker        |
 | 6379  | redis    | re-manager redis  |
-| 5555  | zmq      | re-manager events |
+| 5568  | zmq      | re-manager events |
 | 60615 | json/zmq | re-manager        |
+| 60625 | json/zmq | re-manager logs   |
 | 60620 | json/zmq | hwproxy           |
 
 ## prepare
