@@ -79,8 +79,6 @@ path = C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json
   - run `setx /s <SYSTEMNAME> /u <USERNAME> HAPPI_CFG C:\Users\<USERNAME>\AppData\Local\happi\happi\happi.ini`
   - `yaqd list --format happi |  happi update -`
     - NOTE: every time you change the yaqd hardware, you must update happi using this line.
-  
-
 
 ### Configure folders
 
@@ -90,9 +88,9 @@ path = C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json
 - Edit .env for bluesky-in-a-box
   - `copy .env-example .env`
   - edit .env
-     - set `HAPPI_DB_PATH=C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json` 
+     - set `HAPPI_DB_PATH=C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json`
      - set `WT5_DATA_PATH=C:\Users\<USERNAME>\bluesky-cmds-data`
-     - set 'TZ=America/Chicago` (or whatever timezone you are in)
+     - set `TZ=America/Chicago` (or whatever timezone you are in)
 
 ### Start/Update Containers
 
