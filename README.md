@@ -76,10 +76,9 @@ Go to http://localhost:60610/docs to see queueserver api. Note: not active at th
 [DEFAULT]
 path = C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json
 ```
-
-  - run `set HAPPI_CFG=C:\Users\<USERNAME>\AppData\Local\happi\happi\happi.ini`
-     - This line needs to be run every time you wish to interact with happi... there should be a way to make it more automatic
+  - run `setx /s <SYSTEMNAME> /u <USERNAME> HAPPI_CFG C:\Users\<USERNAME>\AppData\Local\happi\happi\happi.ini`
   - `yaqd list --format happi |  happi update -`
+    - NOTE: every time you change the yaqd hardware, you must update happi using this line.
 
 ### Configure folders
 
