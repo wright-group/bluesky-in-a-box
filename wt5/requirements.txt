@@ -3,3 +3,4 @@ WrightTools==3.4.4
 pyzmq==22.3.0
 numpy==1.22.3
 toolz==0.11.2
+git+https://github.com/wright-group/WrightTools@compression_test
