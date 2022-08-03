@@ -1,5 +1,5 @@
 bluesky==1.8.3
-WrightTools==3.4.4
-pyzmq==22.3.0
-numpy==1.22.3
-toolz==0.11.2
+WrightTools==3.4.5
+pyzmq==23.2.0
+numpy==1.23.1
+toolz==0.12.0
