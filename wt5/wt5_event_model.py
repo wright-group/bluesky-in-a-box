@@ -69,7 +69,7 @@ class GenWT5(CallbackBase):
             json.dump(doc, f, indent=2, cls=NumpyArrayEncoder)
 
         self.data[stream_name] = wt.Data(
-            self.run_dir / f"{stream_name}.wt5",
+            self.run_dir / f"{stream_name}_working.wt5",
             name=stream_name,
             edit_local=True,
         )
@@ -216,14 +216,24 @@ class GenWT5(CallbackBase):
                 with contextlib.redirect_stdout(f):
                     self.data[name].print_tree(verbose=True)
 
-            filepath = self.data[name].filepath
             self.data[name].flush()
             self.data[name].close()
+
+            old_filepath = pathlib.Path(self.data[name].filepath)
+            filepath = self.run_dir / f"{name}.wt5"
+            try:
+                subprocess.run(["h5repack", "-f", "GZIP=4", "-f", "SHUF", str(old_filepath), str(filepath)], check=True)
+            except Exception as e:
+                traceback.print_exc()
+                print("Failed to repack")
+                old_filepath.rename(filepath)
+            else:
+                filepath.unlink()
 
             for dev, hints in descriptor_doc["hints"].items():
                 for chan in hints["fields"]:
                     try:
-                        subprocess.call(["python", "./quick_plot.py", filepath, chan], timeout=10)
+                        subprocess.call(["python", "./quick_plot.py", str(filepath), chan], timeout=10, check=True)
                     except Exception as e:
                         traceback.print_exc()
                         print(f"Failed to plot {chan}")
