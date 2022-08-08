@@ -112,8 +112,6 @@ class GenWT5(CallbackBase):
             "labtime",
             shape=self.scan_shape[stream_name] + (1,) * (len(self.shape[stream_name]) - len(self.scan_shape[stream_name])),
             units="s",
-            compression="gzip",
-            shuffle=True,
         )
         for k, chan_shape in chan_shapes.items():
             dtype = self.descriptor_docs[stream_name]["data_keys"][k]["dtype"]
@@ -129,9 +127,9 @@ class GenWT5(CallbackBase):
                 )
                 and not k in self.detector_axes[stream_name]
             ):
-                self.data[stream_name].create_channel(k, shape=chan_shape, units=units, compression="gzip", shuffle=True)
+                self.data[stream_name].create_channel(k, shape=chan_shape, units=units)
             else:
-                var = self.data[stream_name].create_variable(k, shape=chan_shape, units=units, compression="gzip", shuffle=True)
+                var = self.data[stream_name].create_variable(k, shape=chan_shape, units=units)
                 var.label = k
             for vk, v in self.descriptor_docs[stream_name]["data_keys"].get(k, {}).items():
                 if vk in ("shape", "units", "dtype"):
@@ -238,7 +236,7 @@ def add_outer_product_axes(data, pattern_args, motors, axis_units):
         shape[i] = npts
         arr = np.linspace(start, stop, npts)
         arr = arr.reshape(tuple(shape))
-        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot), compression="gzip", shuffle=True)
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
 
 def add_outer_list_product_axes(data, pattern_args, motors, axis_units):
     for i, (mot, (_, lis)) in enumerate(zip(motors, toolz.partition(2, pattern_args))):
@@ -246,7 +244,7 @@ def add_outer_list_product_axes(data, pattern_args, motors, axis_units):
         shape[i] = len(lis)
         arr = np.array(lis)
         arr = arr.reshape(tuple(shape))
-        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot), compression="gzip", shuffle=True)
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
 
 def add_inner_product_axes(data, pattern_args, npts, motors, axis_units):
     for mot, (_, start, stop) in zip(motors, toolz.partition(3, pattern_args)):
@@ -254,7 +252,7 @@ def add_inner_product_axes(data, pattern_args, npts, motors, axis_units):
         shape[0] = npts
         arr = np.linspace(start, stop, npts)
         arr = arr.reshape(tuple(shape))
-        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot), compression="gzip", shuffle=True)
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
 
 def add_inner_list_product_axes(data, pattern_args, motors, axis_units):
     for mot, (_, lis) in zip(motors, toolz.partition(2, pattern_args)):
@@ -262,7 +260,7 @@ def add_inner_list_product_axes(data, pattern_args, motors, axis_units):
         shape[0] = len(lis)
         arr = np.array(lis)
         arr = arr.reshape(tuple(shape))
-        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot), compression="gzip", shuffle=True)
+        data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot))
 
 
 dispatcher = RemoteDispatcher("zmq-proxy:5568")
