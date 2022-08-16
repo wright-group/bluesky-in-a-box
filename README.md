@@ -68,8 +68,8 @@ Go to http://localhost:60610/docs to see queueserver api. Note: not active at th
 ### Configure hardware
 
 - Set up happi db
-  - `mkdir %LOCALAPPDATA%/happi/happi`
-  - `cd %LOCALAPPDATA%/happi/happi`
+  - `mkdir %LOCALAPPDATA%\happi\happi`
+  - `cd %LOCALAPPDATA%\happi\happi`
   - Create file in above folder "happi.ini":
 
 ```ini
