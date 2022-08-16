@@ -68,15 +68,15 @@ Go to http://localhost:60610/docs to see queueserver api. Note: not active at th
 ### Configure hardware
 
 - Set up happi db
-  - Create folder `~\AppData\Local\happi\happi\`
-  - cd to folder above
+  - `mkdir %LOCALAPPDATA%/happi/happi`
+  - `cd %LOCALAPPDATA%/happi/happi`
   - Create file in above folder "happi.ini":
 
 ```ini
 [DEFAULT]
 path = C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json
 ```
-  - run `setx /s <SYSTEMNAME> /u <USERNAME> HAPPI_CFG C:\Users\<USERNAME>\AppData\Local\happi\happi\happi.ini`
+  - run `setx /s %COMPUTERNAME% /u %USERNAME% HAPPI_CFG %LOCALAPPDATA%\happi\happi\happi.ini`
   - `yaqd list --format happi |  happi update -`
     - NOTE: every time you change the yaqd hardware, you must update happi using this line.
 
