@@ -67,31 +67,27 @@ Go to http://localhost:60610/docs to see queueserver api. Note: not active at th
 
 ### Configure hardware
 
-- Set up happi db
-  - `mkdir %LOCALAPPDATA%\happi\happi`
-  - `cd %LOCALAPPDATA%\happi\happi`
-  - Create file in above folder "happi.ini":
-
-```ini
-[DEFAULT]
-path = C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json
-```
-  - run `setx /s %COMPUTERNAME% /u %USERNAME% HAPPI_CFG %LOCALAPPDATA%\happi\happi\happi.ini`
+- create a happi config file:
+  ```
+  mkdir %LOCALAPPDATA%\happi\happi
+  echo [DEFAULT] > %LOCALAPPDATA%\happi\happi\happi.ini
+  echo path = %LOCALAPPDATA%\happi\happi\happidb.json >> %LOCALAPPDATA%\happi\happi\happi.ini
+  setx /s %COMPUTERNAME% /u %USERNAME% HAPPI_CFG %LOCALAPPDATA%\happi\happi\happi.ini
+  ```
+- create your happi db: 
   - `yaqd list --format happi |  happi update -`
-    - NOTE: every time you change the yaqd hardware, you must update happi using this line.
+  - NOTE: every time you change the yaqd hardware, you must update happi using this line.
 
 ### Configure folders
 
 - Create folder for data output
   - Create `~/bluesky-cmds-data` (Wherever you want data to go, should match `WT5_DATA_PATH` below
-
 - Edit .env for bluesky-in-a-box
   - `copy .env-example .env`
   - edit .env
      - set `HAPPI_DB_PATH=C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json`
      - set `WT5_DATA_PATH=C:\Users\<USERNAME>\bluesky-cmds-data`
      - set `TZ=America/Chicago` (or whatever timezone you are in)
-
 ### Start/Update Containers
 
 - Start your docker
@@ -100,9 +96,6 @@ path = C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json
   - This will take a while the first time, but much is cached for future builds if things change
   - Future updates will redo this step with the appropriate fixes in the local version
   - Use `docker compose build --no-cache` to force a full rebuild (should be rare)
-
-
-
 
 ### config databroker
   - add catalog.yml to `databroker.catalog_search_path`
