@@ -1,7 +1,8 @@
-bluesky==1.8.3
+#bluesky==1.10.0
 pint==0.19.2
 attune==0.4.4
 happi==1.14.0
 yaqc-bluesky==2022.4.1
 bluesky-queueserver==0.0.16
 wright-plans==2022.7.0
+git+https://github.com/ksunden/bluesky@all_mem

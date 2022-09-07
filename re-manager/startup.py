@@ -18,6 +18,7 @@ from wright_plans.attune import (
     run_holistic,
 )
 
+import bluesky
 from bluesky.plans import count
 from bluesky.plan_stubs import mv, sleep
 from bluesky.preprocessors import baseline_decorator
@@ -88,3 +89,6 @@ run_intensity = baseline_decorator(movables)(run_intensity)
 run_setpoint = baseline_decorator(movables)(run_setpoint)
 run_holistic = baseline_decorator(movables)(run_holistic)
 count = baseline_decorator(movables)(count)
+
+RE = bluesky.RunEngine()
+# TODO: if we want mongo, we need to set it up here for keep-re
