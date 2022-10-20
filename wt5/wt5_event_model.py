@@ -121,7 +121,12 @@ class GenWT5(CallbackBase):
                 print(f"Skipping {k} because we do not deal with dtype {dtype}")
                 continue
             chan_shape += [1] * (len(self.shape[stream_name]) - len(chan_shape))
-            units = self.descriptor_docs[stream_name]["data_keys"][k].get("units")
+            # Try/except for any units not in the wt unit registry, including `%`, which raises a different exception
+            try:
+                units = self.descriptor_docs[stream_name]["data_keys"][k].get("units")
+                assert units in wt.units.ureg
+            except:
+                units = None
             if (
                 any(
                     k in self.descriptor_docs[stream_name]["object_keys"].get(det, {})
