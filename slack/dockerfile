@@ -1,0 +1,5 @@
+FROM python:3.10-bullseye
+COPY ./requirements.txt ./
+RUN python3 -m pip install -r requirements.txt
+COPY ./slack_event_model.py ./
+CMD ["python3", "-u", "./slack_event_model.py"]

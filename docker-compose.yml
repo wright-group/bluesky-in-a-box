@@ -1,10 +1,10 @@
 version: "3.7"
 services:
-  mongo:
-    env_file: .env
-    image: mongo:latest
-    ports:
-      - 27017:27017
+  # mongo:
+  #   env_file: .env
+  #   image: mongo:latest
+  #   ports:
+  #     - 27017:27017
   redis:
     env_file: .env
     image: redis:latest
@@ -41,6 +41,11 @@ services:
       - "zmq-proxy"
     volumes:
       - ${WT5_DATA_PATH}:/data
+  slack:
+    env_file: .env
+    build: ./slack
+    depends_on:
+      - "zmq-proxy"
 x-disabled:
   bluesky-queueserver:
     build: ./bluesky-queueserver
