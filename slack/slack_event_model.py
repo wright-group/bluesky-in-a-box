@@ -15,31 +15,39 @@ class SlackFeed(CallbackBase):
     def __init__(self):
         self.start_doc = None
         self.stop_doc = None
-        self.descriptor_docs = {}
-        self.descriptor_uid_to_docs = {}
-        self.data = {}
-        self.shape = {}
-        self.scan_shape = {}
-        self.run_dir = None
-        self.bluesky_doc_dir = None
-        self.detector_axes = {}
-        self.axis_units = {}
         self.slack_port = {"port":39900, "host":host}
+        self.client = yaqc.Client(**self.slack_port)
 
     def start(self, doc):
+        print(doc)
         self.start_doc = doc
-        path_parts = []
-        path_parts.append(self.start_doc.get("plan_name"))
-        path_parts.append(self.start_doc.get("Name"))
-        path_parts.append(self.start_doc.get("uid")[:8])
-
-        self.shape["primary"] = list(
-            self.start_doc.get("shape", [self.start_doc.get("num_points")])
+        out_doc = dict(
+            plan_name = self.start_doc.get("plan_name"),
+            uid = self.start_doc.get("uid")[:8],
+            shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
+            time = self.start_doc.get("time"),
         )
-        self.scan_shape["primary"] = tuple(self.shape["primary"])
+        print(out_doc)
 
         client = yaqc.Client(**self.slack_port)
-        client.publish_wt5_start()
+        client.publish_wt5_start(out_doc)
+
+    def stop(self, doc):
+        print(doc)
+        self.stop_doc = doc
+        out_doc = dict(
+            plan_name = self.start_doc.get("plan_name"),
+            uid = doc.get("run_start")[:8],
+            shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
+            exit_status = doc.get("exit_status"),
+            num_events = doc.get("num_events")["primary"],
+            time = doc.get("time"),
+            # TODO: include doc.get("num_events")["primary"] for completeness
+        )
+        print(out_doc)
+
+        client = yaqc.Client(**self.slack_port)
+        client.publish_wt5_stop(out_doc)
 
     def descriptor(self, doc):
         ...
@@ -47,11 +55,6 @@ class SlackFeed(CallbackBase):
     def event(self, doc):
         ...
 
-    def stop(self, doc):
-        self.stop_doc = doc
-
-        client = yaqc.Client(**self.slack_port)
-        client.publish_wt5_stop()
 
 dispatcher = RemoteDispatcher("zmq-proxy:5568")
 feed = SlackFeed()
