@@ -1,53 +1,54 @@
-import socket
+import asyncio
 
-from bluesky.callbacks.zmq import RemoteDispatcher
+from functools import reduce
+
 from bluesky.callbacks import CallbackBase
-import yaqc
 
-# Host mapped name on windows and mac
-host = "host.docker.internal" 
-try:
-    socket.gethostbyname(host)
-except socket.gaierror:
-    host = "172.17.0.1"  # Default host ip on Linux
 
-class SlackFeed(CallbackBase):
-    def __init__(self):
+class Acquisition(CallbackBase):
+    def __init__(self, app, channel):
         self.start_doc = None
         self.stop_doc = None
-        self.slack_port = {"port":39900, "host":host}
-        self.client = yaqc.Client(**self.slack_port)
+        self.client = app
+        self.channel = channel
 
     def start(self, doc):
         print(doc)
         self.start_doc = doc
-        out_doc = dict(
-            plan_name = self.start_doc.get("plan_name"),
-            uid = self.start_doc.get("uid")[:8],
-            shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
-            time = self.start_doc.get("time"),
-        )
-        print(out_doc)
 
-        client = yaqc.Client(**self.slack_port)
-        client.publish_wt5_start(out_doc)
+        plan_name = self.start_doc.get("plan_name"),
+        uid = self.start_doc.get("uid")[:8],
+        shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
+        time = self.start_doc.get("time"),
+
+        asyncio.create_task(
+            self.app.post_message(
+                text=f"{plan_name} started: shape {self.shape} | uid {uid}",
+                channel=self.channel
+            )
+        )
+
 
     def stop(self, doc):
         print(doc)
         self.stop_doc = doc
-        out_doc = dict(
-            plan_name = self.start_doc.get("plan_name"),
-            uid = doc.get("run_start")[:8],
-            shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
-            exit_status = doc.get("exit_status"),
-            num_events = doc.get("num_events")["primary"],
-            time = doc.get("time"),
-            # TODO: include doc.get("num_events")["primary"] for completeness
-        )
-        print(out_doc)
 
-        client = yaqc.Client(**self.slack_port)
-        client.publish_wt5_stop(out_doc)
+        plan_name = self.start_doc.get("plan_name"),
+        uid = doc.get("run_start")[:8],
+        shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
+        exit_status = doc.get("exit_status")
+        num_events = doc.get("num_events")["primary"],
+        time = doc.get("time")
+        percent = num_events / reduce(lambda x,y: x*y, self.shape) * 100
+
+        asyncio.create_task(
+            self.app.post_message(
+                text=f"{plan_name} stopped ({exit_status}, {percent:0.0f}% complete): shape {num} | uid {uid}",
+                channel=self.channel
+            )
+        )
+
+
 
     def descriptor(self, doc):
         ...
@@ -56,7 +57,3 @@ class SlackFeed(CallbackBase):
         ...
 
 
-dispatcher = RemoteDispatcher("zmq-proxy:5568")
-feed = SlackFeed()
-dispatcher.subscribe(feed)
-dispatcher.start()
