@@ -1,39 +1,44 @@
-import asyncio
-import logging
-
 from functools import reduce
 
 from bluesky.callbacks import CallbackBase
 
 
+def folder_like_name(start_doc):
+    path_parts = []
+    # ddk: ignore wt to keep dependencies simple
+    # timestamp = wt.kit.TimeStamp(self.start_doc["time"])
+    # path_parts.append(timestamp.path)
+    path_parts.append(start_doc.get("plan_name"))
+    path_parts.append(start_doc.get("Name"))
+    path_parts.append(start_doc.get("uid")[:8])
+    return " ".join(x for x in path_parts if x)
+
+
 class Acquisition(CallbackBase):
     def __init__(self, app, channel):
-        logging.info("Acquisition initialized")
-        self.start_doc = None
-        self.stop_doc = None
         self.app = app
         self.channel = channel
+
+        self.start_doc = None
+        self.stop_doc = None
         self.shape = []
+        self.message_id = ""  # TODO: tage the start message so we can just edit it on completion
 
     def start(self, doc):
-        logging.info(f"start: {doc}")
         self.start_doc = doc
 
-        plan_name = self.start_doc.get("plan_name")
-        uid = self.start_doc.get("uid")[:8]
         if "shape" in doc:
             self.shape = doc.get("shape")
-        else:
+        elif "num_points" in doc:
             self.shape = (doc.get("num_points"),)
         time = self.start_doc.get("time")
 
-        self.app.post_message(
-            text=f"{plan_name} started: shape {self.shape} | uid {uid}",
-            channel=self.channel
-        )
+        self.path = folder_like_name(doc)
+
+        text = f"{self.path} started: shape {self.shape}",
+        self.app.post_message(text=text, channel=self.channel)
 
     def stop(self, doc):
-        logging.info(f"stop: {doc}")
         self.stop_doc = doc
 
         plan_name = self.start_doc.get("plan_name")
@@ -43,12 +48,8 @@ class Acquisition(CallbackBase):
         time = doc.get("time")
         percent = num_events / reduce(lambda x,y: x*y, list(self.shape)) * 100
 
-        self.app.post_message(
-            text=f"{plan_name} stopped ({exit_status}, {percent:0.0f}% complete): shape {self.shape} | uid {uid}",
-            channel=self.channel
-        )
-
-
+        text = f"{self.path} stopped ({exit_status}, {percent:0.0f}% complete): shape {self.shape} | uid {uid}"
+        self.app.post_message(text=text, channel=self.channel)
 
     def descriptor(self, doc):
         ...
