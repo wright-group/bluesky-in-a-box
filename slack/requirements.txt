@@ -1,3 +1,5 @@
 bluesky==1.10.0
 pyzmq==23.2.0
-yaqc
+slack_sdk
+slack_bolt
+aiohttp

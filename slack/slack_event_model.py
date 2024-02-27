@@ -1,53 +1,59 @@
-import socket
+from functools import reduce
+import logging
 
-from bluesky.callbacks.zmq import RemoteDispatcher
 from bluesky.callbacks import CallbackBase
-import yaqc
 
-# Host mapped name on windows and mac
-host = "host.docker.internal" 
-try:
-    socket.gethostbyname(host)
-except socket.gaierror:
-    host = "172.17.0.1"  # Default host ip on Linux
 
-class SlackFeed(CallbackBase):
-    def __init__(self):
+def folder_like_name(start_doc):
+    path_parts = []
+    # ddk: ignore wt to keep dependencies simple
+    # timestamp = wt.kit.TimeStamp(self.start_doc["time"])
+    # path_parts.append(timestamp.path)
+    path_parts.append(start_doc.get("plan_name"))
+    path_parts.append(start_doc.get("Name", ""))
+    path_parts.append(start_doc.get("uid")[:8])
+    return " ".join(x for x in path_parts if x)
+
+
+class Acquisition(CallbackBase):
+    def __init__(self, app, channel):
+        self.app = app
+        self.channel = channel
+
         self.start_doc = None
         self.stop_doc = None
-        self.slack_port = {"port":39900, "host":host}
-        self.client = yaqc.Client(**self.slack_port)
+        self.shape = []
+        self.message_id = ""  # TODO: tag the start message so we can just edit it on completion
 
     def start(self, doc):
-        print(doc)
+        logging.debug(f"start: {doc}")
         self.start_doc = doc
-        out_doc = dict(
-            plan_name = self.start_doc.get("plan_name"),
-            uid = self.start_doc.get("uid")[:8],
-            shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
-            time = self.start_doc.get("time"),
-        )
-        print(out_doc)
 
-        client = yaqc.Client(**self.slack_port)
-        client.publish_wt5_start(out_doc)
+        if "shape" in doc:
+            self.shape = doc.get("shape")
+        elif "num_points" in doc:
+            self.shape = (doc.get("num_points"),)
+        time = self.start_doc.get("time")
+
+        self.path = folder_like_name(doc)
+
+        text = f"{self.path} started | shape {self.shape}"
+        logging.debug(f"text: {text}")
+        self.app.post_message(text=text, channel=self.channel)
 
     def stop(self, doc):
-        print(doc)
         self.stop_doc = doc
-        out_doc = dict(
-            plan_name = self.start_doc.get("plan_name"),
-            uid = doc.get("run_start")[:8],
-            shape = list(self.start_doc.get("shape", [self.start_doc.get("num_points")])),
-            exit_status = doc.get("exit_status"),
-            num_events = doc.get("num_events")["primary"],
-            time = doc.get("time"),
-            # TODO: include doc.get("num_events")["primary"] for completeness
-        )
-        print(out_doc)
+        logging.debug(f"stop: {doc}")
 
-        client = yaqc.Client(**self.slack_port)
-        client.publish_wt5_stop(out_doc)
+        plan_name = self.start_doc.get("plan_name")
+        uid = doc.get("run_start")[:8]
+        exit_status = doc.get("exit_status")
+        num_events = doc.get("num_events")["primary"]
+        time = doc.get("time")
+        percent = num_events / reduce(lambda x,y: x*y, list(self.shape)) * 100
+
+        text = f"{self.path} stopped ({exit_status}, {percent:0.0f}% complete): shape {self.shape}"
+        self.app.post_message(text=text, channel=self.channel)
 
     def descriptor(self, doc):
         ...
@@ -56,7 +62,3 @@ class SlackFeed(CallbackBase):
         ...
 
 
-dispatcher = RemoteDispatcher("zmq-proxy:5568")
-feed = SlackFeed()
-dispatcher.subscribe(feed)
-dispatcher.start()
