@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+import pathlib
 
 from slack_bolt.app.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
@@ -25,6 +26,14 @@ class SlackApp(AsyncApp):
         except Exception as e:  # SlackApiError as e:
             self.logger.error(f"Error posting message: {e}")
 
+    def files_upload(self, **kwargs):
+        try:
+            logging.info(f"uploading file to {kwargs['channel']}")
+            asyncio.create_task(self.client.files_upload_v2(**kwargs))
+
+        except Exception as e:  # SlackApiError as e:
+            self.logger.error(f"Error posting message: {e}")
+
 
 app = SlackApp(token=os.environ["SLACK_BOT_TOKEN"])
 
@@ -45,9 +54,9 @@ async def parse_message(message, say):
         command = match["command"]
         await say(f"I understand you want me to {command} with id {match['id']}")
         if command == "fetch":
-            fetch_by_id(app, id, message)
+            fetch_by_id(app, match['id'], message)
         elif command == "plot":
-            plot_by_id(app, id, message)
+            plot_by_id(app, match['id'], message)
 
 @app.command("/hello-socket-mode")
 async def hello_command(ack, body):
@@ -56,22 +65,27 @@ async def hello_command(ack, body):
 
 @app.event("app_mention")
 async def event_test(event, say):
-    await say(f"Hi there, <@{event['user']}>!")
+    await say(f"Hi there, <@{event['user']}>!" + f"event keys are {event.keys()}")
 
 @app.event("message")
 async def handle_message_events(body, logger):
     logger.debug(body)
 
-
-
 def plot_by_id(app, id, message):
-    print("plotting")
+    print("plotting is not implemented yet")
     ...
 
-def fetch_by_id(app, id, message):
-    print("fetching")
-    ...
-
+def fetch_by_id(app:SlackApp, id, message):
+    id_exists = [_ for _ in pathlib.Path("/data").glob(f"* {id}")]
+    if id_exists:
+        file = id_exists[0] / "primary.wt5"
+        logging.debug(f"channel {message['channel']} file {file} exists? {file.exists()}")
+        app.files_upload(
+            initial_comment=f"<@{message['user']}> here is {id}!",
+            channel=message["channel"],
+            filename="primary.wt5",
+            file=str(file),
+        )
 
 async def main():
     handler = AsyncSocketModeHandler(app, app_token=os.environ["SLACK_APP_TOKEN"])
