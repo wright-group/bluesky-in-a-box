@@ -14,12 +14,14 @@ def folder_like_name(start_doc):
     return " ".join(x for x in path_parts if x)
 
 
-def status_color(status):
-    if status in ["running", "success"]:
-        color = "green"
+def icon(status):
+    if status == "running":
+        icon = ""
+    elif status == "success":
+        icon = ":white_check_mark:"
     else:
-        color = "red"
-    return color
+        icon = ":warning:"
+    return icon
 
 
 def async_client_method_handler(client_method, callback=None, **kwargs):

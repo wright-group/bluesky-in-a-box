@@ -9,17 +9,15 @@ from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from bluesky.callbacks.zmq import RemoteDispatcher
 
 from slack_event_model import Acquisition
-from lib import async_client_method_handler, folder_like_name, status_color 
+from lib import async_client_method_handler as client_handler
 
-
-client_handler = async_client_method_handler
 
 logging.basicConfig(level=logging.DEBUG)
 
 app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
 
 desired_message = re.compile(
-    r"@(?P<name>\w+) (?P<command>(fetch|plot)) (?P<args>\w+)"
+    r"(?P<user><@\w+>)\s+(?P<command>(fetch|plot))\s+(?P<args>\w+)"
 )
 
 
@@ -28,12 +26,12 @@ async def user_request(event, say):
     message = event["text"]
     match = re.match(desired_message, message)
     if match is None:
-        await say(":thinking_face: I didn't understand this request")
+        await say(f":thinking_face: I didn't understand request `{message}`")
         return
     else:
         command = match["command"]
         if command == "fetch":
-            status = fetch_by_id(app, match['args'], message)
+            status = fetch_by_id(app, match['args'], event)
             if status != 1:
                 await say(
                     f"I need a single match, but I found {status} acquisition(s) matching your" \
@@ -53,18 +51,19 @@ def plot_by_id(app, id, message):
     raise NotImplementedError
 
 
-def fetch_by_id(app:AsyncApp, specifier, message):
+def fetch_by_id(app:AsyncApp, specifier, meta):
     id_exists = [_ for _ in pathlib.Path("/data").glob(f"*{specifier}*")]
     status = len(id_exists)
     if status == 1:
         file = id_exists[0] / "primary.wt5"
-        logging.debug(f"channel {message['channel']} file {file} exists? {file.exists()}")
+        scan_name = file.parts[-2]
         client_handler(
             app.client.files_upload_v2,
             callback=None,
-            initial_comment=f"<@{message['user']}> here is {id}!",
-            channel=message["channel"],
+            initial_comment=f"<@{meta['user']}> fetched from {scan_name}",
+            channel=meta["channel"],
             filename="primary.wt5",
+            thread_ts=meta["ts"],
             file=str(file),
         )
     return status
