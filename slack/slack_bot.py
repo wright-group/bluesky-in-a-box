@@ -5,87 +5,70 @@ import pathlib
 
 from slack_bolt.app.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
-from slack_sdk.errors import SlackApiError
-
-from slack_event_model import Acquisition
 
 from bluesky.callbacks.zmq import RemoteDispatcher
 
+from slack_event_model import Acquisition
+from lib import async_client_method_handler, folder_like_name, status_color 
+
+
+client_handler = async_client_method_handler
 
 logging.basicConfig(level=logging.DEBUG)
-logging.info(os.environ["SLACK_BOT_TOKEN"])
-logging.info(os.environ["SLACK_APP_TOKEN"])
 
-
-class SlackApp(AsyncApp):
-    def post_message(self, **kwargs):
-        try:
-            logging.info(f"posting message to {kwargs['channel']}")
-            asyncio.create_task(self.client.chat_postMessage(**kwargs))
-
-        except Exception as e:  # SlackApiError as e:
-            self.logger.error(f"Error posting message: {e}")
-
-    def files_upload(self, **kwargs):
-        try:
-            logging.info(f"uploading file to {kwargs['channel']}")
-            asyncio.create_task(self.client.files_upload_v2(**kwargs))
-
-        except Exception as e:  # SlackApiError as e:
-            self.logger.error(f"Error posting message: {e}")
-
-
-app = SlackApp(token=os.environ["SLACK_BOT_TOKEN"])
+app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
 
 desired_message = re.compile(
-    r"(?P<name>\w+) (?P<command>(fetch|plot)) (?P<id>\w+)"
+    r"@(?P<name>\w+) (?P<command>(fetch|plot)) (?P<args>\w+)"
 )
 
-# bind app to event callbacks
-@app.message(re.compile(desired_message))
-async def parse_message(message, say):
-    app.logger.info(f"we got a message: {message}")
-    # message: https://api.slack.com/events/message
-    match = re.match(desired_message, message["text"])
+
+@app.event("app_mention")
+async def user_request(event, say):
+    message = event["text"]
+    match = re.match(desired_message, message)
     if match is None:
         await say(":thinking_face: I didn't understand this request")
         return
     else:
         command = match["command"]
-        await say(f"I understand you want me to {command} with id {match['id']}")
         if command == "fetch":
-            fetch_by_id(app, match['id'], message)
+            status = fetch_by_id(app, match['args'], message)
+            if status != 1:
+                await say(
+                    f"I need a single match, but I found {status} acquisition(s) matching your" \
+                    + f"specifier `{match['args']}` :weary:"
+                )
         elif command == "plot":
-            plot_by_id(app, match['id'], message)
+            await say(f"Not yet implemented!")
+            # plot_by_id(app, match['args'], message)
 
-@app.command("/hello-socket-mode")
-async def hello_command(ack, body):
-    user_id = body["user_id"]
-    await ack(f"Hi <@{user_id}>!")
-
-@app.event("app_mention")
-async def event_test(event, say):
-    await say(f"Hi there, <@{event['user']}>!" + f"event keys are {event.keys()}")
 
 @app.event("message")
 async def handle_message_events(body, logger):
     logger.debug(body)
 
-def plot_by_id(app, id, message):
-    print("plotting is not implemented yet")
-    ...
 
-def fetch_by_id(app:SlackApp, id, message):
-    id_exists = [_ for _ in pathlib.Path("/data").glob(f"* {id}")]
-    if id_exists:
+def plot_by_id(app, id, message):
+    raise NotImplementedError
+
+
+def fetch_by_id(app:AsyncApp, specifier, message):
+    id_exists = [_ for _ in pathlib.Path("/data").glob(f"*{specifier}*")]
+    status = len(id_exists)
+    if status == 1:
         file = id_exists[0] / "primary.wt5"
         logging.debug(f"channel {message['channel']} file {file} exists? {file.exists()}")
-        app.files_upload(
+        client_handler(
+            app.client.files_upload_v2,
+            callback=None,
             initial_comment=f"<@{message['user']}> here is {id}!",
             channel=message["channel"],
             filename="primary.wt5",
             file=str(file),
         )
+    return status
+
 
 async def main():
     handler = AsyncSocketModeHandler(app, app_token=os.environ["SLACK_APP_TOKEN"])
