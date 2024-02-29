@@ -36,40 +36,39 @@ async def parse_user_request(event, say):
             )
     elif command == "plot":
         specifier, *channels = match["args"].split()
-        status = plot(app, specifier, event, channels)
+        status = plot(app, specifier, event, channels if channels else [""])
+        logging.debug("status {status}")
 
 
-def plot(app, specifier, meta, channels=None):
+def plot(app, specifier, meta, channels):
     paths = _find_acquisition_file(specifier)
     status = len(paths)
     if status == 1:
         file_uploads = []
-        scan_folder = paths[0].parts[-2]
         for channel in channels:
-            channel_paths = paths[0].glob(f"{channel}*.png")
-            for cpath in channel_paths:
-                file_uploads.append(dict(file=cpath, title=cpath.name))
-
+            for cpath in paths[0].glob(f"{channel}*.png"):
+                file_uploads.append(dict(file=str(cpath), title=cpath.name))
+        logging.info(f"paths {paths} | channels {channels} | file_uploads {file_uploads}")
         # truncate files to 10
         note = ""
         if len(file_uploads) > 10:
             file_uploads = file_uploads[:10]
             note = "We truncated the images uploaded to 10."
         status = len(file_uploads) > 0
+        scan_folder = paths[0].parts[-2]
         if status:
             client_handler(
                 app.client.files_upload_v2,
                 initial_comment=f"<@{meta['user']}> images from `{scan_folder}`. {note}",
                 channel=meta["channel"],
                 file_uploads=file_uploads,
-                thread_ts=meta["ts"],
+                thread_ts=meta.get("thread_ts", meta["ts"]),
             )
-
     return status
 
 
 def _find_acquisition_file(specifier):
-    return [path for path in pathlib.Path("/data").glob(f"*{specifier}*")]
+    return list(pathlib.Path("/data").glob(f"*{specifier}*"))
 
 
 def fetch(app:AsyncApp, specifier, meta):
@@ -84,10 +83,15 @@ def fetch(app:AsyncApp, specifier, meta):
             initial_comment=f"<@{meta['user']}> fetched from `{scan_name}`",
             channel=meta["channel"],
             filename= f"{scan_name}_primary.wt5",
-            thread_ts=meta["ts"],
+            thread_ts=meta.get("thread_ts", meta["ts"]),
             file=str(path),
         )
     return status
+
+
+@app.event("message")
+async def handle_message(body, logger):
+    logger.info(body)
 
 
 async def main():
