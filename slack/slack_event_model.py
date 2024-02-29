@@ -40,7 +40,6 @@ class Acquisition(CallbackBase):
             start_time=self.start_doc.get("time"),
         )
         text = self.text_template.format(**self.state)
-        logging.debug(f"text: {text}")
 
         client_handler(
             self.app.client.chat_postMessage,
@@ -64,7 +63,6 @@ class Acquisition(CallbackBase):
         self.state["status_icon"] = icon(self.state["exit_status"])
 
         text = self.text_template.format(**self.state)
-        logging.debug(f"text: {text}")
 
         if self.timestamp:
             client_handler(self.app.client.chat_update, text=text, channel=self.channel, ts=self.timestamp)
@@ -80,7 +78,5 @@ class Acquisition(CallbackBase):
     def store_acquisition_timestamp(self, response, exception):
         """callback for scan start, so we can edit the message"""
         self.timestamp = response["ts"]
-        logging.info(f"timestamp: {response['ts']}")
-        logging.info(f"channel: {response['channel']}")
 
 

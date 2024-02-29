@@ -15,56 +15,72 @@ from lib import async_client_method_handler as client_handler
 logging.basicConfig(level=logging.DEBUG)
 
 app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
-
 desired_message = re.compile(
     r"(?P<user><@\w+>)\s+(?P<command>(fetch|plot))\s+(?P<args>\w+)"
 )
 
 
 @app.event("app_mention")
-async def user_request(event, say):
-    message = event["text"]
-    match = re.match(desired_message, message)
+async def parse_user_request(event, say):
+    match = re.match(desired_message, event["text"])
     if match is None:
-        await say(f":thinking_face: I didn't understand request `{message}`")
+        await say(f":thinking_face: I didn't understand request `{event['text']}`")
         return
-    else:
-        command = match["command"]
-        if command == "fetch":
-            status = fetch_by_id(app, match['args'], event)
-            if status != 1:
-                await say(
-                    f"I need a single match, but I found {status} acquisition(s) matching your" \
-                    + f"specifier `{match['args']}` :weary:"
-                )
-        elif command == "plot":
-            await say(f"Not yet implemented!")
-            # plot_by_id(app, match['args'], message)
+    command = match["command"]
+    if command == "fetch":
+        status = fetch(app, match['args'], event)
+        if status != 1:
+            await say(
+                f"I need a single match, but I found {status} acquisition(s) matching your" \
+                + f"specifier `{match['args']}` :weary:"
+            )
+    elif command == "plot":
+        await say(f"Not yet implemented!")
+        specifier, *channels = match["args"].split()
+        status = plot(app, specifier, channels, event)
 
 
-@app.event("message")
-async def handle_message_events(body, logger):
-    logger.debug(body)
-
-
-def plot_by_id(app, id, message):
-    raise NotImplementedError
-
-
-def fetch_by_id(app:AsyncApp, specifier, meta):
-    id_exists = [_ for _ in pathlib.Path("/data").glob(f"*{specifier}*")]
-    status = len(id_exists)
+def plot(app, specifier, channels, meta):
+    paths = _find_acquisition_file(specifier)
+    status = len(paths)
     if status == 1:
-        file = id_exists[0] / "primary.wt5"
-        scan_name = file.parts[-2]
+        file_uploads = []
+        scan_folder = paths[0].parts[-2]
+        for channel, path in zip(channels, map(lambda x: paths[0] / f"{x}.png", channels)):
+            if path.exists():
+                file_uploads.append(dict(file=path, title=channel))
+
+        status = len(file_uploads) > 0
+        if status:
+            client_handler(
+                app.client.files_upload_v2,
+                initial_comment=f"<@{meta['user']}> fetched from `{scan_folder}`",
+                channel=meta["channel"],
+                file_uploads=file_uploads,
+                thread_ts=meta["ts"],
+            )
+
+    return status
+
+
+def _find_acquisition_file(specifier):
+    return [path for path in pathlib.Path("/data").glob(f"*{specifier}*")]
+
+
+def fetch(app:AsyncApp, specifier, meta):
+    paths = _find_acquisition_file(specifier)
+    status = len(paths)
+    if status == 1:
+        path = paths[0] / "primary.wt5"
+        scan_name = path.parts[-2]
+        # TODO: check existence, check file size
         client_handler(
             app.client.files_upload_v2,
-            callback=None,
-            initial_comment=f"<@{meta['user']}> fetched from {scan_name}",
+            initial_comment=f"<@{meta['user']}> fetched from `{scan_name}`",
             channel=meta["channel"],
-            filename="primary.wt5",
+            filename= f"{scan_name}_primary.wt5",
             thread_ts=meta["ts"],
-            file=str(file),
+            file=str(path),
         )
     return status
 
@@ -74,13 +90,11 @@ async def main():
     await handler.connect_async()
 
     loop = asyncio.get_running_loop()
-    logging.info(f"loop:{loop}")
     dispatcher = RemoteDispatcher("zmq-proxy:5568", loop=loop)
     dispatcher.subscribe(Acquisition(app, os.environ.get("SLACK_CHANNEL")))
-    logging.info("adding poll to loop")
     await dispatcher._poll()
+
     await handler.disconnect_async()
-    logging.info("closing")
 
 
 if __name__ == "__main__":
