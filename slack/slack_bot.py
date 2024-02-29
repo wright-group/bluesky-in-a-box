@@ -35,26 +35,31 @@ async def parse_user_request(event, say):
                 + f"specifier `{match['args']}` :weary:"
             )
     elif command == "plot":
-        await say(f"Not yet implemented!")
         specifier, *channels = match["args"].split()
-        status = plot(app, specifier, channels, event)
+        status = plot(app, specifier, event, channels)
 
 
-def plot(app, specifier, channels, meta):
+def plot(app, specifier, meta, channels=None):
     paths = _find_acquisition_file(specifier)
     status = len(paths)
     if status == 1:
         file_uploads = []
         scan_folder = paths[0].parts[-2]
-        for channel, path in zip(channels, map(lambda x: paths[0] / f"{x}.png", channels)):
-            if path.exists():
-                file_uploads.append(dict(file=path, title=channel))
+        for channel in channels:
+            channel_paths = paths[0].glob(f"{channel}*.png")
+            for cpath in channel_paths:
+                file_uploads.append(dict(file=cpath, title=cpath.name))
 
+        # truncate files to 10
+        note = ""
+        if len(file_uploads) > 10:
+            file_uploads = file_uploads[:10]
+            note = "We truncated the images uploaded to 10."
         status = len(file_uploads) > 0
         if status:
             client_handler(
                 app.client.files_upload_v2,
-                initial_comment=f"<@{meta['user']}> fetched from `{scan_folder}`",
+                initial_comment=f"<@{meta['user']}> images from `{scan_folder}`. {note}",
                 channel=meta["channel"],
                 file_uploads=file_uploads,
                 thread_ts=meta["ts"],
