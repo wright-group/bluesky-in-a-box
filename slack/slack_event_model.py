@@ -41,6 +41,7 @@ class Acquisition(CallbackBase):
             shape=self.shape,
             progress=0.,
             start_time=self.start_doc.get("time"),
+            dt=self._dt_fmt(0.),
         )
         text = self.text_template.format(**self.state)
 
@@ -74,17 +75,18 @@ class Acquisition(CallbackBase):
         else:
             client_handler(self.app.client.chat_postMessage, text=text, channel=self.channel)
 
-    def descriptor(self, doc):
-        if doc.get("descriptor") == self.start_doc.get("uid"):
-            if "seq_num" in doc:
-                self.state["progress"] = self._progress(doc.get("seq_num")["primary"])
-            if "time" in doc:
-                self.state["dt"] = self._dt_fmt(doc.get("time") - self.state["start_time"])
-        logging.debug(f"DESCRIPTOR: {doc}")
+    def event(self, doc):
+        # Technically, events from background measurements can screw up this tracker, 
+        # the may be distinguishable by `descriptor` field, but might be tricky to tell which is which
+        # since only an issue at first and last point, ignoring issue for now
+        if "seq_num" in doc:
+            self.state["progress"] = self._progress(doc.get("seq_num"))
+            self.state["dt"] = self._dt_fmt(doc.get("time") - self.state["start_time"])
+        logging.debug(f"EVENT: {doc}")
         logging.info(f"STATE: {self.state}")
 
-    def event(self, doc):
-        logging.debug(f"EVENT: {doc}")
+    def descriptor(self, doc):
+        logging.debug(f"DESCRIPTOR: {doc}")
 
     def _progress(self, num_events):
         return num_events / reduce(lambda x,y: x*y, list(self.shape)) * 100
@@ -93,7 +95,7 @@ class Acquisition(CallbackBase):
         hours = int(dt // 3600)
         minutes = int(dt % 3600) // 60
         seconds = int(round(dt % 60, 0))
-        return "{h}:{m}:{s} elapsed".format(
+        return "{h}:{m}:{s}".format(
             h=str(hours), m=str(minutes).zfill(2), s=str(seconds).zfill(2)
         )
 
@@ -108,6 +110,7 @@ class Acquisition(CallbackBase):
         # TODO: use a stopped event to trigger this
         while True:
             await asyncio.sleep(60)
+            logging.debug("ATTEMPTING TO UPDATE PROGRESS")
             if uid == self.start_doc.get("uid") or self.stopped:
                 break
             if self.timestamp:
