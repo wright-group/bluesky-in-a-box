@@ -1,5 +1,7 @@
 # bluesky-in-a-box 
 
+[TOC]
+
 Bluesky services in docker containers, for use in Wright Group experimental orchestration.
 
 ![architecture](./bluesky-in-a-box-architecture.svg)
@@ -82,16 +84,17 @@ Go to http://localhost:60610/docs to see queueserver api. Note: not active at th
 
 - Create folder for data output
   - Create `~/bluesky-cmds-data` (Wherever you want data to go, should match `WT5_DATA_PATH` below
-- Edit .env for bluesky-in-a-box
+- Edit `.env` for bluesky-in-a-box
   - `copy .env-example .env`
-  - edit .env
+  - edit `.env`
      - set `HAPPI_DB_PATH=C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json`
      - set `WT5_DATA_PATH=C:\Users\<USERNAME>\bluesky-cmds-data`
      - set `TZ=America/Chicago` (or whatever timezone you are in)
+
 ### Start/Update Containers
 
 - Start your docker
-  - if needed, checkout/pull the apporopriate branch which may have fixes for your system
+  - if needed, checkout/pull the appropriate branch which may have fixes for your system
   - from bluesky-in-a-box root directory do `docker compose up --build`
   - This will take a while the first time, but much is cached for future builds if things change
   - Future updates will redo this step with the appropriate fixes in the local version
@@ -112,3 +115,42 @@ sources:
 ```
 
   - This allows you to load data from the mongo server (in addition to the wt5 files)
+
+## Installing slack service (Optional) 
+
+- If you do not want to use the slack app, comment out the service in `docker-compose.yml`.  If you want to use the slack app, continue with the following steps.
+- If the slack app has not yet been created, a workspace owner will need to create a new bot and configure permissions (see [api.slack.com/apps](https://api.slack.com/apps)).  - 
+- Be sure to have the have the following configuration settings (which can be checked by viewing the app manifest):
+  ```
+  oauth_config:
+    scopes:
+      bot:
+        - app_mentions:read
+        - channels:history
+        - groups:history
+        - mpim:history
+        - im:history
+        - chat:write
+        - files:write
+        - im:write
+        - commands
+  settings:
+    event_subscriptions:
+      bot_events:
+        - app_mention
+        - message.channels
+        - message.groups
+        - message.im
+    interactivity:
+      is_enabled: true
+    socket_mode_enabled: true
+  ```
+- To enable socket mode, you will need to get an app token (`xoxa-...`)
+- To deploy the bot, you will need to get a bot token (`xoxb-...`)
+- Add additional variables to the bluesky-in-a-box `.env`:
+  - set `SLACK_BOT_TOKEN = xoxb-...`  
+    (enter the actual token)
+  - set `SLACK_APP_TOKEN = xoxa-...`  
+    (enter the actual token)
+  - set `SLACK_CHANNEL = C1234567890`  
+    (enter the _channel id_--NOT the channel name--to which you want the bot to publish scan updates)
