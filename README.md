@@ -1,7 +1,5 @@
 # bluesky-in-a-box 
 
-[TOC]
-
 Bluesky services in docker containers, for use in Wright Group experimental orchestration.
 
 ![architecture](./bluesky-in-a-box-architecture.svg)
