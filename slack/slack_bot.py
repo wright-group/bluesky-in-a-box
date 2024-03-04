@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
 desired_message = re.compile(
-    r"(?P<user><@\w+>)\s+(?P<command>(fetch|plot))\s+(?P<args>\w+)"
+    r"\s*(?P<user><@\w+>)\s+(?P<command>(fetch|plot))\s*(?P<args>([\w+]+\s*)*)"
 )
 
 
@@ -91,7 +91,7 @@ def fetch(app:AsyncApp, specifier, meta):
 
 @app.event("message")
 async def handle_message(body, logger):
-    logger.info(body)
+    logger.debug(body)
 
 
 async def main():
