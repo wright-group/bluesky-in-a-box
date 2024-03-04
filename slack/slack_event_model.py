@@ -42,7 +42,7 @@ class Acquisition(CallbackBase):
         asyncio.create_task(self.watch_progress())
 
     def stop(self, doc):
-        self.state["status"] = "done"
+        self.state.status = "done"
         logging.debug(f"stop: {doc}")
 
         if doc.get("run_start") != self.start_doc.get("uid"):
@@ -50,9 +50,9 @@ class Acquisition(CallbackBase):
             # TODO: add a default dict to handle unset parameters
             logging.error(f"start/stop event mismatches:  {self.start_doc} {doc}")
             return
-        self.state["exit_status"] = doc.get("exit_status")
-        self.state["last_time"] = doc.get("time")
-        self.state["seq_num"] = doc.get("num_events")["primary"]
+        self.state.exit_status = doc.get("exit_status")
+        self.state.last_time = doc.get("time")
+        self.state.seq_num = doc.get("num_events")["primary"]
 
         text = self.state.as_text()
         self.stopped = True
@@ -73,8 +73,8 @@ class Acquisition(CallbackBase):
         # which is which
         # since only an issue at first and last point, ignoring issue for now
         if "seq_num" in doc:
-            self.state["seq_num"] = doc.get("seq_num")
-            self.state["last_time"] = doc.get("time")
+            self.state.seq_num = doc.get("seq_num")
+            self.state.last_time = doc.get("time")
         logging.debug(f"EVENT: {doc}")
         logging.info(f"STATE: {self.state.as_text()}")
 
@@ -92,7 +92,7 @@ class Acquisition(CallbackBase):
         # TODO: use a stopped event to trigger this
         while True:
             logging.debug("ATTEMPTING TO UPDATE PROGRESS")
-            if uid == self.start_doc.get("uid") or self.stopped:
+            if uid != self.start_doc.get("uid") or self.stopped:
                 break
             if self.timestamp:
                 client_handler(
@@ -113,5 +113,5 @@ class Acquisition(CallbackBase):
             #     break
             # except asyncio.TimeoutError:
             #     continue
-            await asyncio.sleep(60)
+            await asyncio.sleep(15)
 

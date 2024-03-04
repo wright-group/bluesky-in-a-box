@@ -42,10 +42,11 @@ class AcquisitionState:
     def status_icon(self):
         if self.status == "running":
             icon = ""
-        elif self.status == "success":
-            icon = ":white_check_mark:"
-        else:
-            icon = ":warning:"
+        elif self.status == "done":
+            if self.exit_status == "success":
+                icon = ":white_check_mark:"
+            else:
+                icon = ":warning:"
         return icon
 
 
