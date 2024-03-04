@@ -76,7 +76,7 @@ class Acquisition(CallbackBase):
             self.log_to_feed()
             try:
                 await asyncio.wait_for(self.stop_sig.wait(), 20)
-                self.stop_sig.unset()
+                self.stop_sig.clear()
                 break
             except asyncio.TimeoutError:
                 continue
