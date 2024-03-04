@@ -1,10 +1,8 @@
-from functools import reduce
 import logging
 import asyncio
-import time
 
 from bluesky.callbacks import CallbackBase
-from lib import async_client_method_handler, folder_like_name, icon 
+from lib import async_client_method_handler, folder_like_name, AcquisitionState 
 
 
 client_handler = async_client_method_handler
@@ -12,16 +10,9 @@ client_handler = async_client_method_handler
 
 class Acquisition(CallbackBase):
 
-    text_template = "{name} {status} | {shape} | {progress:0.1f}% complete | {dt} elapsed | {status_icon}"
-
     def __init__(self, app, channel):
         self.app = app
         self.channel = channel
-
-        self.start_doc = None
-        self.state = None
-        self.shape = []
-        self.message_id = ""  # TODO: tag the start message so we can just edit it on completion
 
     def start(self, doc):
         logging.debug(f"start: {doc}")
@@ -30,27 +21,24 @@ class Acquisition(CallbackBase):
         self.timestamp = None
 
         if "shape" in doc:
-            self.shape = doc.get("shape")
+            shape = doc.get("shape")
         elif "num_points" in doc:
-            self.shape = (doc.get("num_points"),)
+            shape = (doc.get("num_points"),)
 
-        self.state = dict(
+        self.state = AcquisitionState(
             name=folder_like_name(doc),
             status="running",
-            status_icon=icon("running"),
-            shape=self.shape,
-            progress=0.,
+            shape=shape,
             start_time=self.start_doc.get("time"),
-            dt=self._dt_fmt(0.),
+            last_time=self.start_doc.get("time"),
         )
-        text = self.text_template.format(**self.state)
 
-        client_handler(
-            self.app.client.chat_postMessage,
-            callback=self.store_acquisition_timestamp,
-            text=text,
-            channel=self.channel
-        )
+        # client_handler(
+        #     self.app.client.chat_postMessage,
+        #     callback=self.store_acquisition_timestamp,
+        #     text=self.state.as_text(),
+        #     channel=self.channel
+        # )
         asyncio.create_task(self.watch_progress())
 
     def stop(self, doc):
@@ -63,41 +51,35 @@ class Acquisition(CallbackBase):
             logging.error(f"start/stop event mismatches:  {self.start_doc} {doc}")
             return
         self.state["exit_status"] = doc.get("exit_status")
-        self.state["dt"] = self._dt_fmt(doc.get("time") - self.state["start_time"])
-        self.state["progress"] = self._progress(doc.get("num_events")["primary"])
-        self.state["status_icon"] = icon(self.state["exit_status"])
+        self.state["last_time"] = doc.get("time")
+        self.state["seq_num"] = doc.get("num_events")["primary"]
 
-        text = self.text_template.format(**self.state)
+        text = self.state.as_text()
         self.stopped = True
 
         if self.timestamp:
-            client_handler(self.app.client.chat_update, text=text, channel=self.channel, ts=self.timestamp)
+            client_handler(
+                self.app.client.chat_update,
+                text=text,
+                channel=self.channel,
+                ts=self.timestamp
+            )
         else:
             client_handler(self.app.client.chat_postMessage, text=text, channel=self.channel)
 
     def event(self, doc):
-        # Technically, events from background measurements can screw up this tracker, 
-        # the may be distinguishable by `descriptor` field, but might be tricky to tell which is which
+        # Technically, events from "baseline" measurements can screw up this tracker, 
+        # they may be distinguishable by `descriptor` field, but might be tricky to tell 
+        # which is which
         # since only an issue at first and last point, ignoring issue for now
         if "seq_num" in doc:
-            self.state["progress"] = self._progress(doc.get("seq_num"))
-            self.state["dt"] = self._dt_fmt(doc.get("time") - self.state["start_time"])
+            self.state["seq_num"] = doc.get("seq_num")
+            self.state["last_time"] = doc.get("time")
         logging.debug(f"EVENT: {doc}")
-        logging.info(f"STATE: {self.state}")
+        logging.info(f"STATE: {self.state.as_text()}")
 
     def descriptor(self, doc):
         logging.debug(f"DESCRIPTOR: {doc}")
-
-    def _progress(self, num_events):
-        return num_events / reduce(lambda x,y: x*y, list(self.shape)) * 100
-    
-    def _dt_fmt(self, dt):
-        hours = int(dt // 3600)
-        minutes = int(dt % 3600) // 60
-        seconds = int(round(dt % 60, 0))
-        return "{h}:{m}:{s}".format(
-            h=str(hours), m=str(minutes).zfill(2), s=str(seconds).zfill(2)
-        )
 
     def store_acquisition_timestamp(self, response, exception):
         """callback for scan start, so we can edit the message"""
@@ -109,14 +91,27 @@ class Acquisition(CallbackBase):
         uid = self.start_doc.get("uid")
         # TODO: use a stopped event to trigger this
         while True:
-            await asyncio.sleep(60)
             logging.debug("ATTEMPTING TO UPDATE PROGRESS")
             if uid == self.start_doc.get("uid") or self.stopped:
                 break
             if self.timestamp:
                 client_handler(
                     self.app.client.chat_update, 
-                    text=self.text_template.format(**self.state), 
+                    text=self.state.as_text(), 
                     channel=self.channel, 
                     ts=self.timestamp
                 )
+            else:
+                client_handler(
+                    self.app.client.chat_postMessage,
+                    callback=self.store_acquisition_timestamp,
+                    text=self.state.as_text(),
+                    channel=self.channel
+                )
+            # try:
+            #     await asyncio.wait_for(self._stop_sig.wait(), 60)
+            #     break
+            # except asyncio.TimeoutError:
+            #     continue
+            await asyncio.sleep(60)
+

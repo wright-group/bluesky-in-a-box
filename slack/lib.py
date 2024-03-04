@@ -1,6 +1,52 @@
 import asyncio
 import logging
+from functools import reduce
+from dataclasses import dataclass
 # from slack_sdk.errors import SlackApiError
+
+
+@dataclass()
+class AcquisitionState:
+    start_time:float
+    last_time:float
+    name:str = "<unknown>"
+    status:str = "running"
+    shape:tuple = ()
+    seq_num:int = 0
+    exit_status = None
+
+    def as_text(self):
+        return f"{self.name} {self.status} | {self.shape} | " \
+            f"{self.progress:0.1f}% complete | {self.dt} elapsed | " \
+            f"{self.status_icon}"
+
+    @property
+    def size(self)->int:
+        return reduce(lambda x,y: x*y, list(self.shape))
+
+    @property
+    def dt(self)->str:
+        _dt = self.last_time - self.start_time
+        hours = int(_dt // 3600)
+        minutes = int(_dt % 3600) // 60
+        seconds = int(round(_dt % 60, 0))
+        return "{h}:{m}:{s}".format(
+            h=str(hours), m=str(minutes).zfill(2), s=str(seconds).zfill(2)
+        )
+
+    @property
+    def progress(self)->float:
+        return self.seq_num / self.size * 100
+
+    @property
+    def status_icon(self):
+        if self.status == "running":
+            icon = ""
+        elif self.status == "success":
+            icon = ":white_check_mark:"
+        else:
+            icon = ":warning:"
+        return icon
 
 
 def folder_like_name(start_doc):
@@ -14,19 +60,9 @@ def folder_like_name(start_doc):
     return " ".join(x for x in path_parts if x)
 
 
-def icon(status):
-    if status == "running":
-        icon = ""
-    elif status == "success":
-        icon = ":white_check_mark:"
-    else:
-        icon = ":warning:"
-    return icon
-
-
 def async_client_method_handler(client_method, callback=None, **kwargs):
     """
-    starts client_method task and ties a callback function 
+    queues client_method task and allows a callback action
     callback must except two arguments:  response and exception
     """
     if callback is None:
