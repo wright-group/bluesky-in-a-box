@@ -74,7 +74,7 @@ class Acquisition(CallbackBase):
             logging.debug("ATTEMPTING TO UPDATE PROGRESS")
             self.log_to_feed()
             try:
-                await asyncio.wait_for(self._stop_sig.wait(), 20)
+                await asyncio.wait_for(self.stop_sig.wait(), 20)
                 self._stop_sig.unset()
                 break
             except asyncio.TimeoutError:
