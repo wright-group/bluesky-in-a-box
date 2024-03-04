@@ -14,9 +14,10 @@ class Acquisition(CallbackBase):
         self.app = app
         self.channel = channel
         self.stop_sig = asyncio.Event()
+        self.logger = logging.getLogger("Acquisition")
 
     def start(self, doc):
-        logging.debug(f"start: {doc}")
+        self.logger.info(f"start: {doc}")
         self.start_doc = doc
         self.timestamp = None
 
@@ -37,11 +38,11 @@ class Acquisition(CallbackBase):
 
     def stop(self, doc):
         self.state.status = "done"
-        logging.debug(f"stop: {doc}")
+        self.logger.info(f"stop: {doc}")
 
         if doc.get("run_start") != self.start_doc.get("uid"):
             # for now, just drop the event if we don't know the state
-            logging.error(f"start/stop event mismatches:  {self.start_doc} {doc}")
+            self.logger.error(f"start/stop event mismatches:  {self.start_doc} {doc}")
             return
         self.state.exit_status = doc.get("exit_status")
         self.state.last_time = doc.get("time")
@@ -58,11 +59,11 @@ class Acquisition(CallbackBase):
         if "seq_num" in doc:
             self.state.seq_num = doc.get("seq_num")
             self.state.last_time = doc.get("time")
-        logging.debug(f"EVENT: {doc}")
-        logging.debug(f"STATE: {self.state.as_text()}")
+        self.logger.debug(f"EVENT: {doc}")
+        self.logger.debug(f"STATE: {self.state.as_text()}")
 
     def descriptor(self, doc):
-        logging.debug(f"DESCRIPTOR: {doc}")
+        self.logger.debug(f"DESCRIPTOR: {doc}")
 
     def store_acquisition_timestamp(self, response, exception):
         """callback for scan start, so we can edit the message"""
@@ -71,11 +72,11 @@ class Acquisition(CallbackBase):
     async def watch_progress(self):
         """continually update slack message with state"""
         while True:
-            logging.debug("ATTEMPTING TO UPDATE PROGRESS")
+            self.logger.debug("ATTEMPTING TO UPDATE PROGRESS")
             self.log_to_feed()
             try:
                 await asyncio.wait_for(self.stop_sig.wait(), 20)
-                self._stop_sig.unset()
+                self.stop_sig.unset()
                 break
             except asyncio.TimeoutError:
                 continue

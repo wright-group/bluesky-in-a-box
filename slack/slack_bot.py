@@ -11,8 +11,7 @@ from bluesky.callbacks.zmq import RemoteDispatcher
 from slack_event_model import Acquisition
 from lib import async_client_method_handler as client_handler
 
-
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
 desired_message = re.compile(
