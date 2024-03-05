@@ -26,7 +26,7 @@ class AcquisitionState:
 
     @property
     def dt(self)->str:
-        _dt = self.last_time - self.start_time
+        _dt = round(self.last_time - self.start_time, 0)
         hours = int(_dt // 3600)
         minutes = int(_dt % 3600) // 60
         seconds = int(_dt % 60)
