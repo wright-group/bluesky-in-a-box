@@ -14,7 +14,7 @@ class NumpyArrayEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        return JSONEncoder.default(self, obj)
+        return self.JSONEncoder.default(obj)
 
 class GenWT5(CallbackBase):
     def __init__(self):
@@ -53,6 +53,7 @@ class GenWT5(CallbackBase):
         self.scan_shape["primary"] = tuple(self.shape["primary"])
         self.shape["baseline"] = (2,)
         self.scan_shape["baseline"] = (2,)
+
         # At present only "primary" and "baseline" have shapes associated
         # A shape is required to actually make the data object for the stream
         # Future usecases of additional streams (e.g. flyers) will need to deal
