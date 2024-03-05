@@ -117,7 +117,8 @@ sources:
 ## Installing slack service (Optional) 
 
 - If you do not want to use the slack app, comment out the service in `docker-compose.yml`.  If you want to use the slack app, continue with the following steps.
-- If the slack app has not yet been created, a workspace owner will need to create a new bot and configure permissions (see [api.slack.com/apps](https://api.slack.com/apps)).  - 
+- If the slack app has not yet been created, a workspace owner will need to create a new bot and configure permissions (see [api.slack.com/apps](https://api.slack.com/apps)).
+- You will need to designate a channel for the bot to post its feed to.  If needed, create the channel.  You will need to know the channel ID for the app configuration (see below).
 - Be sure to have the have the following configuration settings (which can be checked by viewing the app manifest):
   ```
   oauth_config:
@@ -143,12 +144,12 @@ sources:
       is_enabled: true
     socket_mode_enabled: true
   ```
-- To enable socket mode, you will need to get an app token (`xoxa-...`)
-- To deploy the bot, you will need to get a bot token (`xoxb-...`)
+- To enable socket mode, you will need to get an app token (`xapp-...`)
+- To use the bot, you will need to get a bot token (`xoxb-...`)
 - Add additional variables to the bluesky-in-a-box `.env`:
-  - set `SLACK_BOT_TOKEN = xoxb-...`  
+  - `SLACK_BOT_TOKEN = xoxb-...`  
     (enter the actual token)
-  - set `SLACK_APP_TOKEN = xoxa-...`  
+  - `SLACK_APP_TOKEN = xoxa-...`  
     (enter the actual token)
-  - set `SLACK_CHANNEL = C1234567890`  
+  - `SLACK_CHANNEL = C1234567890`  
     (enter the _channel id_--NOT the channel name--to which you want the bot to publish scan updates)
