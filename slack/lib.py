@@ -29,7 +29,7 @@ class AcquisitionState:
         _dt = self.last_time - self.start_time
         hours = int(_dt // 3600)
         minutes = int(_dt % 3600) // 60
-        seconds = int(round(_dt % 60, 0))
+        seconds = int(_dt % 60)
         return "{h}:{m}:{s}".format(
             h=str(hours), m=str(minutes).zfill(2), s=str(seconds).zfill(2)
         )
