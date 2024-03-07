@@ -13,6 +13,7 @@ from bluesky.callbacks.zmq import RemoteDispatcher
 from slack_event_model import Acquisition
 from lib import async_client_method_handler as client_handler
 
+
 logging.basicConfig(level=logging.INFO)
 
 user = {}
@@ -21,6 +22,7 @@ app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
 desired_message = re.compile(
     r"\s*<@(?P<user>\w+)>\s+(?P<command>(fetch|plot))\s*(?P<args>([\w+]+\s*)*)"
 )
+
 
 def execute_command(app:AsyncApp, event:dict, match:re.Match):
     match = re.match(desired_message, event["text"])
