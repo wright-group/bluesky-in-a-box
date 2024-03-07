@@ -13,9 +13,9 @@ from bluesky.callbacks.zmq import RemoteDispatcher
 from slack_event_model import Acquisition
 from lib import async_client_method_handler as client_handler
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
-global user  # for storing app user info
+user = {}
 app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
 # get app's user name
 desired_message = re.compile(
@@ -39,7 +39,7 @@ def execute_command(app:AsyncApp, event:dict, match:re.Match):
             method(app, paths, event, channels)
             return
         else:
-            text = f"I need a single match, but I found {len(paths)} acquisition(s) matching your" \
+            text = f"I need a single match, but I found {len(paths)} acquisition(s) matching your " \
                 + f"specifier `{specifier}` :weary:"
     # if we didn't succeed, give back an informative message
     client_handler(app.client.chat_postMessage, text=text, **kwargs)
@@ -50,13 +50,15 @@ async def parse_mention(event, say):
     execute_command(app, event, re.match(desired_message, event["text"]))
 
 
-@app.event("message.im")
+@app.event("message")
 async def handle_message(body, logger):
     logger.debug(body)
     event = body["event"]
-    match = re.match(desired_message, event["text"])
-    assert match["user"] == user["user_id"]
-    execute_command(app, event, match)
+    mentioned = "<@{}>".format(user["user_id"]) in event["text"]
+    if event["channel_type"] == "im" and mentioned:        
+        execute_command(app, event, match = re.match(desired_message, event["text"]))
+    else:
+        logging.info("the message event was not an im type!")
 
 
 def plot(app:AsyncApp, paths:str, event:dict, channels:List[str]):
@@ -102,6 +104,7 @@ def _find_acquisition_file(specifier):
 async def main():
     handler = AsyncSocketModeHandler(app, app_token=os.environ["SLACK_APP_TOKEN"])
     await handler.connect_async()
+    global user
     user = await app.client.auth_test()
     logging.info(user)
 
