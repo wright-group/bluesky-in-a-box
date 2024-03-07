@@ -3,6 +3,8 @@ import re
 import logging
 import pathlib
 
+from typing import List, Optional
+
 from slack_bolt.app.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
@@ -13,89 +15,95 @@ from lib import async_client_method_handler as client_handler
 
 logging.basicConfig(level=logging.INFO)
 
+global user  # for storing app user info
 app = AsyncApp(token=os.environ["SLACK_BOT_TOKEN"])
+# get app's user name
 desired_message = re.compile(
-    r"\s*(?P<user><@\w+>)\s+(?P<command>(fetch|plot))\s*(?P<args>([\w+]+\s*)*)"
+    r"\s*<@(?P<user>\w+)>\s+(?P<command>(fetch|plot))\s*(?P<args>([\w+]+\s*)*)"
 )
+
+def execute_command(app:AsyncApp, event:dict, match:re.Match):
+    match = re.match(desired_message, event["text"])
+    kwargs = dict(channel=event["channel"], thread_ts=event.get("thread_ts", event["ts"]),)
+    if not match:
+        text = f":thinking_face: I didn't understand request `{event['text']}`"
+    else:
+
+        if match["command"] == "fetch":
+            method = fetch
+        elif match["command"] == "plot":
+            method = plot
+        specifier, *channels = match["args"].split()
+        paths = _find_acquisition_file(specifier)
+        if len(paths) == 1:
+            method(app, paths, event, channels)
+            return
+        else:
+            text = f"I need a single match, but I found {len(paths)} acquisition(s) matching your" \
+                + f"specifier `{specifier}` :weary:"
+    # if we didn't succeed, give back an informative message
+    client_handler(app.client.chat_postMessage, text=text, **kwargs)
 
 
 @app.event("app_mention")
-async def parse_user_request(event, say):
+async def parse_mention(event, say):
+    execute_command(app, event, re.match(desired_message, event["text"]))
+
+
+@app.event("message.im")
+async def handle_message(body, logger):
+    logger.debug(body)
+    event = body["event"]
     match = re.match(desired_message, event["text"])
-    if match is None:
-        await say(f":thinking_face: I didn't understand request `{event['text']}`")
-        return
-    command = match["command"]
-    if command == "fetch":
-        status = fetch(app, match['args'], event)
-        if status != 1:
-            await say(
-                f"I need a single match, but I found {status} acquisition(s) matching your" \
-                + f"specifier `{match['args']}` :weary:"
-            )
-    elif command == "plot":
-        specifier, *channels = match["args"].split()
-        status = plot(app, specifier, event, channels if channels else [""])
-        logging.debug("status {status}")
+    assert match["user"] == user["user_id"]
+    execute_command(app, event, match)
 
 
-def plot(app, specifier, meta, channels):
-    paths = _find_acquisition_file(specifier)
-    status = len(paths)
-    if status == 1:
-        file_uploads = []
-        for channel in channels:
-            for cpath in paths[0].glob(f"{channel}*.png"):
-                file_uploads.append(dict(file=str(cpath), title=cpath.name))
-        logging.info(f"paths {paths} | channels {channels} | file_uploads {file_uploads}")
-        # truncate files to 10
-        note = ""
-        if len(file_uploads) > 10:
-            file_uploads = file_uploads[:10]
-            note = "We truncated the images uploaded to 10."
-        status = len(file_uploads) > 0
-        scan_folder = paths[0].parts[-2]
-        if status:
-            client_handler(
-                app.client.files_upload_v2,
-                initial_comment=f"<@{meta['user']}> images from `{scan_folder}`. {note}",
-                channel=meta["channel"],
-                file_uploads=file_uploads,
-                thread_ts=meta.get("thread_ts", meta["ts"]),
-            )
-    return status
+def plot(app:AsyncApp, paths:str, event:dict, channels:List[str]):
+    kwargs = dict(channel=event["channel"], thread_ts=event.get("thread_ts", event["ts"]),)
+    if not channels:
+        channels = [""]
+    file_uploads = []
+    for channel in channels:
+        for cpath in paths[0].glob(f"{channel}*.png"):
+            file_uploads.append(dict(file=str(cpath), title=cpath.name))
+    # truncate files to 10
+    note = ""
+    if len(file_uploads) > 10:
+        file_uploads = file_uploads[:10]
+        note = "We truncated the images uploaded to 10."
+    scan_folder = paths[0].parts[-1]
+    if file_uploads:
+        kwargs["initial_comment"] = f"<@{event['user']}> images from `{scan_folder}`. {note}"
+    else:
+        kwargs["initial_comment"] = "`{scan_folder}` had no images."
+    client_handler(app.client.files_upload_v2, file_uploads=file_uploads, **kwargs)
+
+
+def fetch(app:AsyncApp, paths:str, event:dict, args):
+    kwargs = dict(channel=event["channel"], thread_ts=event.get("thread_ts", event["ts"]),)
+
+    path = paths[0] / "primary.wt5"
+    scan_name = path.parts[-2]
+    assert path.exists()
+    client_handler(
+        app.client.files_upload_v2,
+        initial_comment=f"<@{event['user']}> fetched from `{scan_name}`",
+        filename= f"{scan_name}_primary.wt5",
+        file=str(path),
+        **kwargs
+    )
 
 
 def _find_acquisition_file(specifier):
     return list(pathlib.Path("/data").glob(f"*{specifier}*"))
 
 
-def fetch(app:AsyncApp, specifier, meta):
-    paths = _find_acquisition_file(specifier)
-    status = len(paths)
-    if status == 1:
-        path = paths[0] / "primary.wt5"
-        scan_name = path.parts[-2]
-        # TODO: check existence, check file size
-        client_handler(
-            app.client.files_upload_v2,
-            initial_comment=f"<@{meta['user']}> fetched from `{scan_name}`",
-            channel=meta["channel"],
-            filename= f"{scan_name}_primary.wt5",
-            thread_ts=meta.get("thread_ts", meta["ts"]),
-            file=str(path),
-        )
-    return status
-
-
-@app.event("message")
-async def handle_message(body, logger):
-    logger.debug(body)
-
-
 async def main():
     handler = AsyncSocketModeHandler(app, app_token=os.environ["SLACK_APP_TOKEN"])
     await handler.connect_async()
+    user = await app.client.auth_test()
+    logging.info(user)
 
     loop = asyncio.get_running_loop()
     dispatcher = RemoteDispatcher("zmq-proxy:5568", loop=loop)
