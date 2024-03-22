@@ -1,22 +1,35 @@
 import asyncio
 import logging
 from functools import reduce
-from dataclasses import dataclass
 # from slack_sdk.errors import SlackApiError
 
 
-@dataclass()
 class AcquisitionState:
-    start_time:float
-    last_time:float
-    name:str = "<unknown>"
-    status:str = "running"
-    shape:tuple = ()
-    seq_num:int = 0
-    exit_status = None
+    def __init__(self, doc):
+        if "shape" in doc:
+            shape = doc.get("shape")
+        elif "num_points" in doc:
+            shape = (doc.get("num_points"),)
+        
+        # extract axes (not useful for all scans)
+        self.axes = None
+        if doc.get("plan_name") == "grid_scan_wp":
+            # [device, start, stop, npts, units]...
+            axes = doc.get("dimensions")
+            self.axes = [",".join(a[0]) for a in axes if a[1] == "primary"]
+
+        self.start_doc = doc
+        self.start_time = self.start_doc.get("time")
+        self.last_time = self.start_time
+        self.name = folder_like_name(doc)
+        self.status = "running"
+        self.shape = shape
+        self.seq_num = 0
+        self.exit_status = None
+        self.plan_name = self.start_doc.get("plan_name")
 
     def as_text(self):
-        return f"{self.name} {self.status} | {self.shape} | " \
+        return f"{self.name} {self.status} | {" ".join(self.shape, self.axes)} | " \
             f"{self.progress:0.1f}% complete | {self.dt} elapsed | " \
             f"{self.status_icon}"
 
