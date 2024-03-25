@@ -14,9 +14,8 @@ class AcquisitionState:
         # extract axes (not useful for all scans)
         self.axes = None
         if doc.get("plan_name") == "grid_scan_wp":
-            # [device, start, stop, npts, units]...
-            axes = doc.get("dimensions")
-            self.axes = [",".join(a[0]) for a in axes if a[1] == "primary"]
+            axes = doc["hints"]["dimensions"]
+            self.axes = " x ".join(",".join(a[0]) for a in axes if a[1] == "primary")
 
         self.start_doc = doc
         self.start_time = self.start_doc.get("time")
@@ -29,9 +28,12 @@ class AcquisitionState:
         self.plan_name = self.start_doc.get("plan_name")
 
     def as_text(self):
-        return f"{self.name} {self.status} | {" ".join(self.shape, self.axes)} | " \
-            f"{self.progress:0.1f}% complete | {self.dt} elapsed | " \
-            f"{self.status_icon}"
+        dim_info = str(self.shape) + (f" {self.axes}" if self.axes else "")
+        return (
+            f"{self.name} {self.status} | {dim_info} | " \
+            + f"{self.progress:0.1f}% complete | {self.dt} elapsed | " \
+            + f"{self.status_icon}"
+        )
 
     @property
     def size(self)->int:
