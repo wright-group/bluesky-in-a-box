@@ -28,7 +28,7 @@ class AcquisitionState:
         self.plan_name = self.start_doc.get("plan_name")
 
     def as_text(self):
-        dim_info = str(self.shape) + (f" {self.axes}" if self.axes else "")
+        dim_info = str(self.shape) + (f", ({self.axes})" if self.axes else "")
         return (
             f"{self.name} {self.status} | {dim_info} | " \
             + f"{self.progress:0.1f}% complete | {self.dt} elapsed | " \
