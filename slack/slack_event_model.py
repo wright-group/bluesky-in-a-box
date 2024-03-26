@@ -2,7 +2,7 @@ import logging
 import asyncio
 
 from bluesky.callbacks import CallbackBase
-from lib import async_client_method_handler, folder_like_name, AcquisitionState 
+from lib import async_client_method_handler, AcquisitionState 
 
 
 client_handler = async_client_method_handler
@@ -18,21 +18,8 @@ class Acquisition(CallbackBase):
 
     def start(self, doc):
         self.logger.info(f"start: {doc}")
-        self.start_doc = doc
         self.timestamp = None
-
-        if "shape" in doc:
-            shape = doc.get("shape")
-        elif "num_points" in doc:
-            shape = (doc.get("num_points"),)
-
-        self.state = AcquisitionState(
-            name=folder_like_name(doc),
-            status="running",
-            shape=shape,
-            start_time=self.start_doc.get("time"),
-            last_time=self.start_doc.get("time"),
-        )
+        self.state = AcquisitionState(doc)
 
         asyncio.create_task(self.watch_progress())
 
@@ -40,14 +27,16 @@ class Acquisition(CallbackBase):
         self.state.status = "done"
         self.logger.info(f"stop: {doc}")
 
-        if doc.get("run_start") != self.start_doc.get("uid"):
+        if doc.get("run_start") != self.state.start_doc.get("uid"):
             # for now, just drop the event if we don't know the state
-            self.logger.error(f"start/stop event mismatches:  {self.start_doc} {doc}")
+            self.logger.error(f"start/stop event mismatches:  {self.state.start_doc} {doc}")
             return
         self.state.exit_status = doc.get("exit_status")
         self.state.last_time = doc.get("time")
-        self.state.seq_num = doc.get("num_events")["primary"]
-
+        num_events = doc.get("num_events")  # .get("primary", 0)
+        # don't update scan progress if scan is stopped at baseline
+        if "primary" in num_events:
+            self.state.seq_num = num_events["primary"]
         self.stop_sig.set()
         self.log_to_feed()
 
