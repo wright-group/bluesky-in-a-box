@@ -33,6 +33,10 @@ def orthogonal(*shapes):
 transform = data.axis_names
 # TODO consider not transforming and just identifying axes and then use edit-local since nothing is written
 data.transform(*[x for x in transform if not orthogonal(data[chan].shape, data[x].shape)])
+# locally change object name to get a more meaningful plot title
+name = " ".join(run_dir.parts[-1].split()[2:])
+data.natural_name = name
+
 if ndim == 2:
     wt.artists.quick2D(
         data,
