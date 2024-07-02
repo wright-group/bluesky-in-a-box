@@ -216,6 +216,10 @@ class GenWT5(CallbackBase):
                 ax.convert(self.axis_units[ax.natural_name])
 
         self.data["primary"].flush()
+        # resave primary to get better compression
+        # DDK 2024-07-02
+        temp = wt.open(self.run_dir / f"primary.wt5")
+        temp.save(self.run_dir / f"primary.wt5")
 
         for name, descriptor_doc in self.descriptor_docs.items():
             with open(
