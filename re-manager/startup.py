@@ -19,13 +19,12 @@ from wright_plans.attune import (
     run_holistic,
 )
 
-from wright_plans.callbacks import (
-    start, event, stop,
-)
+from wright_plans import WpCallBacks
+
 
 from bluesky.plans import count
 from bluesky.plan_stubs import mv, sleep
-from bluesky.preprocessors import baseline_decorator
+from bluesky.preprocessors import baseline_decorator, subs_decorator
 from bluesky.protocols import Movable
 
 happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
@@ -85,6 +84,7 @@ list_grid_scan_wp = baseline_decorator(movables)(list_grid_scan_wp)
 rel_list_grid_scan_wp = baseline_decorator(movables)(rel_list_grid_scan_wp)
 scan_wp = baseline_decorator(movables)(scan_wp)
 grid_scan_wp = baseline_decorator(movables)(grid_scan_wp)
+grid_scan_w_callbacks_wp = subs_decorator(baseline_decorator(movables)(grid_scan_wp), WpCallBacks)
 rel_grid_scan_wp = baseline_decorator(movables)(rel_grid_scan_wp)
 rel_scan_wp = baseline_decorator(movables)(rel_scan_wp)
 motortune = baseline_decorator(movables)(motortune)
