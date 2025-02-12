@@ -6,6 +6,7 @@ import pathlib
 data = wt.open(sys.argv[1])
 run_dir = pathlib.Path(sys.argv[1]).parent
 chan = sys.argv[2]
+cmap = wt.artists.colormaps["default"].resampled(2**12)
 
 if not chan in data.channel_names:
     sys.exit(0)
@@ -45,6 +46,7 @@ if ndim == 2:
         yaxis = -1,
         autosave=True,
         save_directory=run_dir,
+        cmap=cmap,
         fname=chan,
     )
 elif ndim == 1:
