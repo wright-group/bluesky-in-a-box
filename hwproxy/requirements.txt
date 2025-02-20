@@ -1,5 +1,6 @@
 bluesky==1.10.0
 pint==0.19.2
+numpy==1.26.4
 attune==0.4.4
 happi==1.14.0
 yaqc-bluesky==2022.4.1
