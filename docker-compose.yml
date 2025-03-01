@@ -48,9 +48,9 @@ services:
       - "zmq-proxy"
     volumes:
       - ${WT5_DATA_PATH}:/data
-  callbacks_suspenders:
+  callbacks-suspenders:
     env_file: .env
-    build: ./callbacks_suspenders
+    build: ./callbacks-suspenders
     depends_on:
       - "zmq-proxy"
     volumes:
