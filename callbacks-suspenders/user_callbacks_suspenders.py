@@ -6,7 +6,7 @@ import os
 import WrightTools as wt
 from bluesky.callbacks import CallbackBase
 from bluesky.suspenders import SuspenderBase
-
+import time
 
 class SimpleTestCallback(CallbackBase):
     # Simple Callback telling ReManager to print when 
@@ -49,7 +49,8 @@ class SimpleTestCallback(CallbackBase):
         # since only an issue at first and last point, ignoring issue for now
         self.event_doc=doc
         isdirectory=os.path.isdir(self.run_dir)
-        print("run stopped")
+        print("event found")
+        time.sleep(1.0)
         print("Run_dir found at event = "+str(isdirectory))
         print("")
         pass

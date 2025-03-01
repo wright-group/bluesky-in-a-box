@@ -53,6 +53,9 @@ services:
     build: ./callbacks-suspenders
     depends_on:
       - "zmq-proxy"
+    ports:
+      - 5569:5569
+      - 5570:5570    
     volumes:
       - ${WT5_DATA_PATH}:/data    
 x-disabled:
