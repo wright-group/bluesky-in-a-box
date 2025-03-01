@@ -13,7 +13,7 @@ class SimpleTestCallback(CallbackBase):
     # an init, Event, Start, or Stop document is published.
     # Currently it also points out if the wt5 directory has been
     # found.
-    def __init__(self, app, channel):
+    def __init__(self):
         print("SimpleTestCallback initialized")
         pass
 
