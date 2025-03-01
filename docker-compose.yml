@@ -48,6 +48,13 @@ services:
       - "zmq-proxy"
     volumes:
       - ${WT5_DATA_PATH}:/data
+  callbacks_suspenders:
+    env_file: .env
+    build: ./callbacks_suspenders
+    depends_on:
+      - "zmq-proxy"
+    volumes:
+      - ${WT5_DATA_PATH}:/data    
 x-disabled:
   bluesky-queueserver:
     build: ./bluesky-queueserver
