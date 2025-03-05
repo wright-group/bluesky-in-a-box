@@ -17,8 +17,19 @@ RUN python3 -m pip install -r requirements.txt
 
 ENV PYTHONUNBUFFERED 1
 ENV HAPPI_CFG /happi.ini
+COPY ./user_callbacks_suspenders.py ./
+RUN apt update
+RUN apt install git -y
+RUN apt install librdkafka-dev -y
+RUN apt install python3-pip -y
+RUN python3 -m pip install git+https://github.com/bluesky/bluesky-queueserver
+RUN python3 -c "import distutils.spawn; print(distutils.spawn.find_executable('uvicorn'))"
+CMD ["uvicorn", "bluesky_queueserver.server.server:app", "--port", "60610"]
+
+
 
 RUN qserver-list-plans-devices --startup-script startup.py
+
 
 # start
 CMD ["./start_re.sh"]

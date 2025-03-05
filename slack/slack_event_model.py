@@ -11,12 +11,14 @@ client_handler = async_client_method_handler
 class Acquisition(CallbackBase):
 
     def __init__(self, app, channel):
+        super().__init__()
         self.app = app
         self.channel = channel
         self.stop_sig = asyncio.Event()
         self.logger = logging.getLogger("Acquisition")
 
     def start(self, doc):
+        super().start(doc)
         self.logger.info(f"start: {doc}")
         self.timestamp = None
         self.state = AcquisitionState(doc)
@@ -24,6 +26,7 @@ class Acquisition(CallbackBase):
         asyncio.create_task(self.watch_progress())
 
     def stop(self, doc):
+        super().stop(doc)
         self.state.status = "done"
         self.logger.info(f"stop: {doc}")
 
@@ -41,6 +44,7 @@ class Acquisition(CallbackBase):
         self.log_to_feed()
 
     def event(self, doc):
+        super().event(doc)
         # Technically, events from "baseline" measurements can screw up this tracker, 
         # they may be distinguishable by `descriptor` field, but might be tricky to tell 
         # which is which
@@ -52,6 +56,7 @@ class Acquisition(CallbackBase):
         self.logger.debug(f"STATE: {self.state.as_text()}")
 
     def descriptor(self, doc):
+        super().descriptor(doc)
         self.logger.debug(f"DESCRIPTOR: {doc}")
 
     def store_acquisition_timestamp(self, response, exception):

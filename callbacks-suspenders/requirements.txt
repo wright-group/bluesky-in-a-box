@@ -1,5 +1,6 @@
 bluesky==1.10.0
 pint==0.19.2
+pyzmq==23.2.0
 numpy==1.26.4
 attune==0.4.4
 happi==1.14.0

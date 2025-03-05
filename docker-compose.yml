@@ -20,7 +20,6 @@ services:
       - ${HAPPI_DB_PATH}:/happi_db.json
     depends_on:
       - "redis"
-      - "zmq-proxy"
   hwproxy:
     env_file: .env
     build: ./hwproxy
@@ -37,8 +36,6 @@ services:
   wt5:
     env_file: .env
     build: ./wt5
-    depends_on:
-      - "zmq-proxy"
     volumes:
       - ${WT5_DATA_PATH}:/data
   slack:
@@ -48,16 +45,6 @@ services:
       - "zmq-proxy"
     volumes:
       - ${WT5_DATA_PATH}:/data
-  callbacks-suspenders:
-    env_file: .env
-    build: ./callbacks-suspenders
-    depends_on:
-      - "zmq-proxy"
-    ports:
-      - 5569:5569
-      - 5570:5570    
-    volumes:
-      - ${WT5_DATA_PATH}:/data    
 x-disabled:
   bluesky-queueserver:
     build: ./bluesky-queueserver
