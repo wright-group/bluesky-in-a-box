@@ -1,7 +1,0 @@
-FROM python:3.10-bullseye
-COPY ./requirements.txt ./
-RUN python3 -m pip install -r requirements.txt
-COPY ./startup.py ./
-COPY ./user_callbacks_suspenders.py ./
-CMD ["bluesky-0MQ-proxy", "5569", "5570"]
-CMD ["python3", "-u", "./startup.py"]
