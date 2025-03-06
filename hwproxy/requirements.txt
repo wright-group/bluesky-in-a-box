@@ -5,5 +5,6 @@ attune==0.4.4
 happi==1.14.0
 yaqc-bluesky==2022.4.1
 bluesky-queueserver==0.0.16
-wright-plans==2022.7.0
+wright-plans @ git+https://github.com/wright-group/wright-plans@args_update
+#wright-plans==2022.7.0
 bluesky-hwproxy==2022.8.0

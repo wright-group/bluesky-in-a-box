@@ -104,7 +104,7 @@ def scan_wp(detectors, *args, num=None, constants=None, per_step=None, md=None):
 
 @subs_decorator(SimpleEventCallback)
 @baseline_decorator(movables)
-def grid_scan_wp(detectors, *args, constants=None, snake_axes=False, per_step=None, md=None):
+def grid_scan_wp2(detectors, *args, constants=None, snake_axes=False, per_step=None, md=None):
     yield from wp.grid_scan_wp(detectors, *args, constants, snake_axes, per_step, md)
 
 @subs_decorator(SimpleEventCallback)
