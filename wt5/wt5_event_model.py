@@ -3,6 +3,7 @@ import json
 import pathlib
 import subprocess
 import traceback
+import os
 
 from bluesky.callbacks.zmq import RemoteDispatcher
 from bluesky.callbacks import CallbackBase
@@ -43,7 +44,6 @@ class GenWT5(CallbackBase):
         self.run_dir.mkdir(exist_ok=True, parents=True)
         self.bluesky_doc_dir = self.run_dir / "bluesky_docs"
         self.bluesky_doc_dir.mkdir(exist_ok=True)
-
         with open(self.bluesky_doc_dir / "start.json", "wt") as f:
             json.dump(self.start_doc, f, indent=2, cls=NumpyArrayEncoder)
 

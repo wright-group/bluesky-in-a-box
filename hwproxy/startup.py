@@ -1,6 +1,6 @@
 import socket
 import happi
-from user_callbacks_suspenders import *
+from callback_wp import Callback_wp
 import WrightTools as wt
 from bluesky.preprocessors import subs_decorator, baseline_decorator
 from bluesky.protocols import Movable
@@ -8,6 +8,8 @@ import wright_plans as wp
 import wright_plans.attune as wpa
 import bluesky.plans as bsp
 import bluesky.plan_stubs as bpst
+
+from bluesky.run_engine import RunEngine
 
 happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
 
@@ -77,73 +79,72 @@ run_holistic = baseline_decorator(movables)(run_holistic)
 count = baseline_decorator(movables)(count)
 '''
 
-
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def list_scan_wp(detectors, *args, constants=None, per_step=None, md=None):
     yield from wp.list_scan_wp(detectors, *args, constants=constants, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def rel_list_scan_wp(detectors, *args, constants=None, per_step=None, md=None):
     yield from wp.rel_list_scan_wp(detectors, *args, constants=constants, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def list_grid_scan_wp(detectors, *args, constants=None, snake_axes=False, per_step=None, md=None):
     yield from wp.list_grid_scan_wp(detectors, *args, constants=constants, snake_axes=snake_axes, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def rel_list_grid_scan_wp(detectors, *args, constants=None, snake_axes=False, per_step=None, md=None):
     yield from wp.rel_list_grid_scan_wp(detectors, *args, constants=constants, snake_axes=snake_axes, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def scan_wp(detectors, *args, num=None, constants=None, per_step=None, md=None):
     yield from wp.scan_wp(detectors, *args, num=num, constants=constants, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def grid_scan_wp2(detectors, *args, constants=None, snake_axes=False, per_step=None, md=None):
     yield from wp.grid_scan_wp(detectors, *args, constants=constants, snake_axes=snake_axes, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def rel_grid_scan_wp(detectors, *args, constants=None, snake_axes=False, per_step=None, md=None):
     yield from wp.rel_grid_scan_wp(detectors, *args, constants=constants, snake_axes=snake_axes, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def rel_scan_wp(detectors, *args, num=None, constants=None, per_step=None, md=None):
     yield from wp.rel_scan_wp(detectors, *args, num=num, constants=constants, per_step=per_step, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def motortune(detectors, *args, opa, use_tune_points, motors, spectrometer=None, md=None):
     yield from wpa.motortune(detectors, *args, opa=opa, use_tune_points=use_tune_points, motors=motors, spectrometer=spectrometer, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def run_tune_test(detectors, *args, opa, spectrometer, md=None):
     yield from wpa.run_tune_test(detectors, *args, opa=opa, spectrometer=spectrometer, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def run_intensity(detectors, *args, opa, motor, width, npts, spectrometer, md=None):
     yield from wpa.run_intensity(detectors, *args, opa=opa, motor=motor, width=width, npts=npts, spectrometer=spectrometer, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def run_setpoint(detectors, *args, opa, motor, width, npts, spectrometer, md=None):
     yield from wpa.run_setpoint(detectors, *args, opa=opa, motor=motor, width=width, npts=npts, spectrometer=spectrometer, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def run_holistic(detectors, *args, opa, motor0, motor1, width, npts, spectrometer, md=None):
     yield from wpa.run_holistic(detectors, *args, opa=opa, motor0=motor0, motor1=motor1, width=width, npts=npts, spectrometer=spectrometer, md=md)
 
-@subs_decorator(SimpleEventCallback)
+@subs_decorator(Callback_wp)
 @baseline_decorator(movables)
 def count(detectors, num=None, delay=0.0, per_shot=None, md=None):
     yield from bsp.count(detectors, num=num, delay=delay, per_shot=per_shot, md=md) 
