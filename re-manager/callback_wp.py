@@ -1,0 +1,136 @@
+import time
+import WrightTools as wt
+
+# from user_callbacks import *
+
+# docs received have keys with "plan_name",  "run_start" (same name used for stops) and "descriptor"
+#. Current descriptors on REManager include events.  This code parses out the docs to determine if
+# a run has started, stopped, or an intermediate, true event has occurred.  The code requires at
+# least 2 data points for a run job for the event finding portion to work.  It also cannot 
+# detect the first event in that run job.    However, the code should be relatively robust to
+# multiple nested decorators of plans, so suspenders can be called separately and nested within the
+# decorated syntax of the startup.py
+#  
+# insert callback functions at bottom.  The timestamp methods from the wt5 event model might be
+#  used to determine the data folder for data, but virtualization may make the path inaccessible...
+#  The timestamps would be inserted at a plan_name or run_start(start).   
+
+#
+# using globals to keep this callback a sync function.  
+
+event=False
+descriptor_id_1=""
+descriptor_id_2=""
+run_id=""
+start=False
+stop=False
+_started=False
+_stopped=False
+_eventfound=False
+_envstarted=False
+
+
+def globalreset():
+    global event
+    global descriptor_id_1
+    global descriptor_id_2
+    global run_id
+    global start
+    global stop
+    global _started
+    global _stopped
+    global _eventfound
+
+    event=False
+    descriptor_id_1=""
+    descriptor_id_2=""
+    run_id=""
+    start=False
+    stop=False
+    _started=False
+    _stopped=False
+    _eventfound=False
+    #envstarted not here
+    pass
+
+
+
+def Callback_wp(name="event", doc={}):
+    global event
+    global descriptor_id_1
+    global descriptor_id_2
+    global run_id
+    global start
+    global stop
+    global _started
+    global _stopped
+    global _eventfound
+    global _envstarted
+ 
+    # plan_name document try-except
+    try:
+        if doc["plan_name"]:
+            if _started==False:
+                if _envstarted==False:
+                    _envstarted=True
+                    print("********")
+                    print("New Env Started="+str(_envstarted))
+                    print("********")
+    except:
+        start=False
+        event=False
+        stop=False
+        pass
+
+    #run_start document try-except
+    try:
+        if doc["run_start"]:
+            # only first runs of a new bluesky-cmds might need above, this is for 
+            # other queue items.
+            if _started==False:            
+                start=True
+                _started=True
+            if _stopped==False:
+                if _eventfound:
+                    stop=True
+                    _stopped=True
+    except:
+        start=False
+        event=False
+        stop=False
+        pass
+
+    #descriptor document try-except
+    try:    
+        if doc["descriptor"]:
+            descriptor_id_1=descriptor_id_2
+            descriptor_id_2=doc["descriptor"]
+            if descriptor_id_1 == descriptor_id_2:
+                event=True
+                _eventfound=True
+                run_id=descriptor_id_2
+            else:
+                event=False
+    except:
+        start=False        
+        event=False
+        stop=False
+        pass
+
+
+    if start:
+        # insert start function here
+        pass
+
+    if event: 
+        # insert event function here   
+        # time.sleep(0.25)
+        pass
+
+    if stop:
+        # insert stop function here
+        pass
+
+    if _started & _stopped:
+        globalreset()
+        pass
