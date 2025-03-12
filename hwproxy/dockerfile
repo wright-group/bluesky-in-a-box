@@ -15,7 +15,8 @@ ENV HAPPI_CFG /happi.ini
 
 # re-manager
 COPY ./startup.py ./startup.py
-COPY ./user_callbacks_suspenders.py ./user_callbacks_suspenders.py
+COPY ./callback_wp.py  ./callback_wp/py
+COPY ./user_callbacks.py ./user_callbacks.py
 
 # start
 CMD ["start-hwproxy-server", "--startup-script", "startup.py"]
