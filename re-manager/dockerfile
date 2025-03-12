@@ -17,7 +17,7 @@ RUN python3 -m pip install -r requirements.txt
 
 ENV PYTHONUNBUFFERED 1
 ENV HAPPI_CFG /happi.ini
-COPY ./callback_wp.py  ./callback_wp/py
+COPY ./callback_wp.py  ./callback_wp.py
 COPY ./user_callbacks.py ./user_callbacks.py
 RUN apt update
 RUN apt install git -y

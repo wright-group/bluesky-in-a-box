@@ -15,7 +15,7 @@ ENV HAPPI_CFG /happi.ini
 
 # re-manager
 COPY ./startup.py ./startup.py
-COPY ./callback_wp.py  ./callback_wp/py
+COPY ./callback_wp.py  ./callback_wp.py
 COPY ./user_callbacks.py ./user_callbacks.py
 
 # start
