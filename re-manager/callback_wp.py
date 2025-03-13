@@ -1,5 +1,7 @@
 import time
 import WrightTools as wt
+import pathlib, os
+
 
 # from user_callbacks import *
 
@@ -14,9 +16,6 @@ import WrightTools as wt
 # insert callback functions at bottom.  The timestamp methods from the wt5 event model might be
 #  used to determine the data folder for data, but virtualization may make the path inaccessible...
 #  The timestamps would be inserted at a plan_name or run_start(start).   
-
-#
-# using globals to keep this callback a sync function.  
 
 event=False
 descriptor_id_1=""
@@ -50,7 +49,7 @@ def globalreset():
     _started=False
     _stopped=False
     _eventfound=False
-    #envstarted not here
+    
     pass
 
 
@@ -76,6 +75,17 @@ def Callback_wp(name="event", doc={}):
                     print("********")
                     print("New Env Started="+str(_envstarted))
                     print("********")
+                    print(doc)
+                    timestamp = wt.kit.TimeStamp(doc["time"])
+                    path_parts = []
+                    path_parts.append(timestamp.path)
+                    path_parts.append(doc["plan_name"])
+                    path_parts.append(doc["Name"])
+                    path_parts.append(doc["uid"][:8])
+                    dirname = " ".join(x for x in path_parts if x)
+                    run_dir = pathlib.Path("/data") / dirname
+                    print(str(run_dir))
+                    print(str(os.isdir(run_dir)))
     except:
         start=False
         event=False
@@ -90,6 +100,18 @@ def Callback_wp(name="event", doc={}):
             if _started==False:            
                 start=True
                 _started=True
+                print(doc)
+                timestamp = wt.kit.TimeStamp(doc["time"])
+                path_parts = []
+                path_parts.append(timestamp.path)
+                path_parts.append(doc["plan_name"])
+                path_parts.append(doc["Name"])
+                path_parts.append(doc["uid"][:8])
+                dirname = " ".join(x for x in path_parts if x)
+                run_dir = pathlib.Path("/data") / dirname
+                print(str(run_dir))
+                print(str(os.isdir(run_dir)))
+
             if _stopped==False:
                 if _eventfound:
                     stop=True
