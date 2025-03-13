@@ -5,7 +5,7 @@ import pathlib, os
 
 # from user_callbacks import *
 
-# docs received have keys with "plan_name",  "run_start" (same name used for stops) and "descriptor"
+# docs received have keys with "Name",  "run_start" (same name used for stops) and "descriptor"
 #. Current descriptors on REManager include events.  This code parses out the docs to determine if
 # a run has started, stopped, or an intermediate, true event has occurred.  The code requires at
 # least 2 data points for a run job for the event finding portion to work.  It also cannot 
