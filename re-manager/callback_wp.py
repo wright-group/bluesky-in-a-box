@@ -28,6 +28,12 @@ _stopped=False
 _eventfound=False
 _envstarted=False
 
+_plan_name=""
+_name=""
+
+run_dir=""
+bluesky_doc_dir=""
+
 
 def globalreset():
     global event
@@ -39,6 +45,8 @@ def globalreset():
     global _started
     global _stopped
     global _eventfound
+    global run_dir
+    global bluesky_doc_dir
 
     event=False
     descriptor_id_1=""
@@ -49,7 +57,8 @@ def globalreset():
     _started=False
     _stopped=False
     _eventfound=False
-    
+    run_dir=""
+    bluesky_doc_dir=""
     pass
 
 
@@ -66,52 +75,53 @@ def Callback_wp(name="event", doc={}):
     global _eventfound
     global _envstarted
  
-    # plan_name document try-except
+    global _plan_name
+    global _name
+
+    global run_dir
+    global bluesky_doc_dir
+
+    # Name (not name) document try-except
+    # coding finds proper path for wt5 file but currently cannot access it
     try:
-        if doc["plan_name"]:
+        if doc["Name"]:
             if _started==False:
                 if _envstarted==False:
                     _envstarted=True
                     print("********")
                     print("New Env Started="+str(_envstarted))
                     print("********")
-                    print(doc)
-                    timestamp = wt.kit.TimeStamp(doc["time"])
-                    path_parts = []
-                    path_parts.append(timestamp.path)
-                    path_parts.append(doc["plan_name"])
-                    path_parts.append(doc["Name"])
-                    path_parts.append(doc["uid"][:8])
-                    dirname = " ".join(x for x in path_parts if x)
-                    run_dir = pathlib.Path("/data") / dirname
-                    print(str(run_dir))
-                    print(str(os.isdir(run_dir)))
+
+                timestamp = wt.kit.TimeStamp(doc["time"])
+                path_parts = []
+                path_parts.append(timestamp.path)
+               
+                _name=doc["Name"]
+                _plan_name=doc["plan_name"]
+                
+                path_parts.append(_plan_name)
+                path_parts.append(_name)
+                path_parts.append(doc["uid"][:8])
+                dirname = " ".join(x for x in path_parts if x)
+                run_dir = pathlib.Path("/data") / dirname
+                bluesky_doc_dir = run_dir / "bluesky_docs"
+                run_dir=str(run_dir)
+                bluesky_doc_dir=str(bluesky_doc_dir)
+
+                
     except:
         start=False
         event=False
         stop=False
         pass
+    
 
     #run_start document try-except
     try:
         if doc["run_start"]:
-            # only first runs of a new bluesky-cmds might need above, this is for 
-            # other queue items.
             if _started==False:            
                 start=True
                 _started=True
-                print(doc)
-                timestamp = wt.kit.TimeStamp(doc["time"])
-                path_parts = []
-                path_parts.append(timestamp.path)
-                path_parts.append(doc["plan_name"])
-                path_parts.append(doc["Name"])
-                path_parts.append(doc["uid"][:8])
-                dirname = " ".join(x for x in path_parts if x)
-                run_dir = pathlib.Path("/data") / dirname
-                print(str(run_dir))
-                print(str(os.isdir(run_dir)))
-
             if _stopped==False:
                 if _eventfound:
                     stop=True
