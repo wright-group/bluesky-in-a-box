@@ -3,7 +3,7 @@ import WrightTools as wt
 import pathlib, os
 
 
-# from user_callbacks import *
+from user_callbacks import *
 
 # docs received have keys with "Name",  "run_start" (same name used for stops) and "descriptor"
 #. Current descriptors on REManager include events.  This code parses out the docs to determine if
@@ -138,6 +138,7 @@ def Callback_wp(name="event", doc={}):
     if event: 
         # insert event function here   
         # time.sleep(0.25)
+        # get_position()
         pass
 
     if stop:
