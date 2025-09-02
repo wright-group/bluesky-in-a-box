@@ -1,8 +1,8 @@
-bluesky==1.10.0
-pint==0.24.4
-numpy<2.0
-attune==0.5.1
-happi<3.0
-yaqc-bluesky
+attune
 bluesky-queueserver==0.0.16
+bluesky==1.10.0
+happi<3.0
+numpy<2.0
+pint==0.24.4
 wright-plans
+yaqc-bluesky
