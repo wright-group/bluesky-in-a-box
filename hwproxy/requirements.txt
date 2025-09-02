@@ -1,9 +1,9 @@
-bluesky==1.10.0
-pint==0.19.2
-numpy==1.26.4
-attune==0.4.4
-happi==1.14.0
-yaqc-bluesky==2022.4.1
 bluesky-queueserver==0.0.16
-wright-plans==2022.7.0
 bluesky-hwproxy==2022.8.0
+bluesky==1.10.0
+pint==0.24.4
+numpy<2.0
+happi<3.0
+attune
+yaqc-bluesky
+wright-plans
