@@ -1,5 +1,5 @@
 bluesky==1.10.0
 WrightTools
-pyzmq==27.0.2
-numpy<2.0
-toolz==1.0.0
+pyzmq
+numpy
+toolz

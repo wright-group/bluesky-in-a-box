@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:trixie
 RUN apt update
 RUN apt install git -y
 RUN apt install librdkafka-dev -y

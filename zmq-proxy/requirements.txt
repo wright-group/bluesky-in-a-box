@@ -1,2 +1,2 @@
 bluesky==1.10.0
-pyzmq==27.0.2
+pyzmq

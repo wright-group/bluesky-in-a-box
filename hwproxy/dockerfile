@@ -1,14 +1,22 @@
-FROM debian:bullseye
+FROM debian:bookworm
 
 # python
 RUN apt update
 RUN apt install git -y
 RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
+RUN apt install python3-venv -y
 
 # happi
 COPY ./happi.ini /happi.ini
 COPY ./requirements.txt ./
+
+# Create a virtual environment
+RUN python3 -m venv /opt/venv
+
+# Activate the virtual environment
+ENV PATH="/opt/venv/bin:$PATH"
+
 RUN pip install -r requirements.txt
 
 ENV HAPPI_CFG /happi.ini
