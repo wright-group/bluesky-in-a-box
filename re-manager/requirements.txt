@@ -2,7 +2,7 @@ attune
 bluesky==1.10.0
 bluesky-queueserver==0.0.20
 happi
-numpy
+numpy < 2.4
 pint
 wright-plans
 yaqc-bluesky
