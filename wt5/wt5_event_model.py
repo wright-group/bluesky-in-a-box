@@ -158,9 +158,8 @@ class GenWT5(CallbackBase):
 
         if stream_name == "primary":
             for hw, (units, terms) in self.start_doc.get("plan_constants", {}).items():
-                if len(terms) == 1 and terms[0][1] is None:
-                    c = self.data[stream_name].create_constant(terms[0][0], units=units)
-
+                if len(terms) == 1 and terms[0][1] is None:  # only declare simple constants for now
+                    c = self.data[stream_name].create_constant(f"{hw}={terms[0][0]}", units=units)
         # Add stationary hardware to the primary dataset
         # This assumes the order is baseline descriptor -> baseline reading -> primary descriptor
         # because the data is read from the wt5 file. This is the current order and is unlikely to
