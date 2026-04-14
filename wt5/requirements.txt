@@ -1,5 +1,5 @@
-bluesky==1.10.0
-WrightTools
-pyzmq
-numpy
-toolz
+bluesky==1.10.0  # ignore
+numpy==2.4.4
+pyzmq==27.1.0
+toolz==1.1.0
+WrightTools==3.6.3

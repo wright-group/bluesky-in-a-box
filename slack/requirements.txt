@@ -1,5 +1,5 @@
-bluesky==1.10.0
-pyzmq
-slack_sdk
-slack_bolt
-aiohttp
+bluesky==1.10.0  # ignore
+pyzmq==27.1.0
+slack_sdk==3.41.0
+slack_bolt==1.28.0
+aiohttp==3.13.5
