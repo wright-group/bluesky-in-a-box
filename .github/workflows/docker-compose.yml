@@ -15,7 +15,9 @@ jobs:
       uses: docker/setup-compose-action@v2
     -
       name: Set up environment
-      run: cp .env-example .env
+      run: |
+        cp ./tests/ .
+        mkdir bluesky-cmds-data
     - 
       name: Build and start Docker images
       run: |
