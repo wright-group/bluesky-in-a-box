@@ -16,8 +16,9 @@ jobs:
     -
       name: Set up environment
       run: |
-        cp ./tests/ .
+        cp -r ./tests/.env .env
         mkdir bluesky-cmds-data
+        ls
     - 
       name: Build and start Docker images
       run: |
