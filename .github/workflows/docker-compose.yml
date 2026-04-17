@@ -16,7 +16,7 @@ jobs:
     -
       name: Set up environment
       run: |
-        cp -r ./tests/.env .env
+        cp -r ./tests/test.env .env
         mkdir bluesky-cmds-data
         ls
     - 
