@@ -1,0 +1,24 @@
+name: docker-compose-test
+
+on:
+  push:
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+    - 
+      name: Checkout code
+      uses: actions/checkout@v4
+    -
+      name: Set up Docker Compose
+      uses: docker/setup-compose-action@v2
+    - 
+      name: Build and start Docker images
+      run: |
+        docker compose up -d
+        sleep 30
+    -
+      name: Stop Docker images
+      if: always()
+      run: docker compose down
