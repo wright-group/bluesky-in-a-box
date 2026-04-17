@@ -11,6 +11,7 @@ if not chan in data.channel_names:
     sys.exit(0)
 
 
+data = data.squeeze(name = data.natural_name)  # count scans with array detectors will plot
 ndim = np.sum(np.array(data[chan].shape) > 1)
 if ndim > 2:
     print(f"Not plotting due to ndim {data[chan].shape}")

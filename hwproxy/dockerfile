@@ -19,7 +19,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 RUN pip install -r requirements.txt
 
-ENV HAPPI_CFG /happi.ini
+ENV HAPPI_CFG=/happi.ini
 
 # re-manager
 COPY ./startup.py ./startup.py
