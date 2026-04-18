@@ -19,6 +19,9 @@ jobs:
         cp -r ./tests/test.env .env
         mkdir bluesky-cmds-data
         ls
+    -
+      name: Designate file permissions
+      run: chmod +x ./re-manager/start_re.sh
     - 
       name: Build and start Docker images
       run: |
