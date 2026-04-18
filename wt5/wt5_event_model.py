@@ -203,8 +203,12 @@ class GenWT5(CallbackBase):
 
         # transform (axes make filling harder than it needs to be)
         try:
+            motor_axes = self.start_doc["motors"][: len(self.scan_shape["primary"])]
+            # axes default to non-redundant variables when possible
+            # TODO apply this only when using grid plan?
+            motor_axes = [x+"_points" if x+"_points" in self.data["primary"].variable_names else x for x in motor_axes]
             self.data["primary"].transform(
-                *self.start_doc["motors"][: len(self.scan_shape["primary"])],
+                *motor_axes,
                 *self.detector_axes["primary"],
             )
         except KeyError:
