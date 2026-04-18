@@ -26,7 +26,7 @@ jobs:
       name: Build and start Docker images
       run: |
         docker compose up -d
-        sleep 30
+        sleep 5
         docker compose ps
     -
       name: Stop Docker images
