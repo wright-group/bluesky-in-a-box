@@ -26,7 +26,7 @@ RUN python3 -m pip install -r requirements.txt
 ENV PYTHONUNBUFFERED=1
 ENV HAPPI_CFG=/happi.ini
 
-RUN qserver-list-plans-devices --startup-script startup.py
+# RUN qserver-list-plans-devices --startup-script startup.py
 
 # start
 CMD ["./start_re.sh"]
