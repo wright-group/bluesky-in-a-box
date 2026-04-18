@@ -1,5 +1,5 @@
 attune==0.5.1
-bluesky==1.10.0  # ignore
+bluesky  # ignore
 bluesky-hwproxy==2022.8.0
 bluesky-queueserver==0.0.24
 happi==3.0.1
