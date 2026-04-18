@@ -27,6 +27,7 @@ jobs:
       run: |
         docker compose up -d
         sleep 30
+        docker compose ps
     -
       name: Stop Docker images
       if: always()
