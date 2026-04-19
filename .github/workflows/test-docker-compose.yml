@@ -19,6 +19,7 @@ jobs:
         cp -r ./tests/test.env .env
         mkdir bluesky-cmds-data
         ls
+        echo $GITHUB_WORKSPACE
     -
       name: Designate file permissions
       run: chmod +x ./re-manager/start_re.sh
