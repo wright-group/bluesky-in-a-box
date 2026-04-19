@@ -17,9 +17,9 @@ jobs:
       name: Set up environment
       run: |
         cp -r ./tests/test.env .env
+        echo "HAPPI_DB_PATH= $GITHUB_WORKSPACE/tests/happi_db.json" >> .env
+        echo "WT5_DATA_PATH= $GITHUB_WORKSPACE/bluesky-cmds-data" >> .env
         mkdir bluesky-cmds-data
-        ls
-        echo $GITHUB_WORKSPACE
     -
       name: Designate file permissions
       run: chmod +x ./re-manager/start_re.sh
