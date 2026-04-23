@@ -21,14 +21,10 @@ jobs:
         cp -r ./tests/numpy-test/ ./
     -
       name: Designate file permissions
-      run: chmod +x ./numpy-test/start_re.sh
+      run: chmod +x start_re.sh
     - 
       name: Build image
       run: docker build -t numpy-test .
     - 
       name: Run container
       run: docker run numpy-test
-    -
-      name: Stop Docker images
-      if: always()
-      run: docker compose down
