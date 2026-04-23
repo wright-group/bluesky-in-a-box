@@ -19,9 +19,6 @@ jobs:
         cp -r ./tests/test.env .env
         echo "HAPPI_DB_PATH= $GITHUB_WORKSPACE/tests/happi_db.json" >> .env
         cp -r ./tests/numpy-test/ ./
-    -
-      name: Designate file permissions
-      run: chmod +x start_re.sh
     - 
       name: Build image
       run: docker build -t numpy-test .
