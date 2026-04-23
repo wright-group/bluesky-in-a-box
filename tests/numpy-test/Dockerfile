@@ -20,6 +20,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install dependencies
 RUN python3 -m pip install -r requirements.txt
 
-ENV HAPPI_CFG=/happi.ini
-
 RUN qserver-list-plans-devices --startup-script startup.py
