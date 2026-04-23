@@ -13,9 +13,9 @@ jobs:
     -
       name: Set up environment
       run: |
+        cp -r ./tests/numpy-test/* ./
         cp -r ./tests/test.env .env
         echo "HAPPI_DB_PATH= $GITHUB_WORKSPACE/tests/happi_db.json" >> .env
-        cp -r ./tests/numpy-test/ ./
     - 
       name: Build image
       run: |
