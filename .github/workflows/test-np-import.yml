@@ -18,7 +18,9 @@ jobs:
         cp -r ./tests/numpy-test/ ./
     - 
       name: Build image
-      run: docker build -t test .
+      run: |
+        ls
+        docker build -t test .
     - 
       name: Run container
       run: docker run test
