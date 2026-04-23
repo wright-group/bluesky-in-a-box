@@ -14,5 +14,8 @@ updates:
   - package-ecosystem: "pip"
     directories: 
       - "**/*"
+    ignore:
+      - dependency-name: "bluesky-queueserver"
+        versions: [ ">0.0.23" ]
     schedule:
       interval: "weekly"
