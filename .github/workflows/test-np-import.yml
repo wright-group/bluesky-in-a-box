@@ -1,0 +1,26 @@
+name: numpy-import-test
+
+on:
+  push:
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+    - 
+      name: Checkout code
+      uses: actions/checkout@v5
+    -
+      name: Set up environment
+      run: |
+        cp -r ./tests/numpy-test/* ./
+        cp -r ./tests/test.env .env
+        echo "HAPPI_DB_PATH= $GITHUB_WORKSPACE/tests/happi_db.json" >> .env
+    - 
+      name: Build image
+      run: |
+        ls
+        docker build -t test .
+    - 
+      name: Run container
+      run: docker run test

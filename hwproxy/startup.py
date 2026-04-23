@@ -18,9 +18,12 @@ from wright_plans.attune import (
     run_holistic,
 )
 
+from bluesky import RunEngine
 from bluesky.plans import count
+from bluesky.plan_stubs import mv, sleep
 from bluesky.preprocessors import baseline_decorator
 from bluesky.protocols import Movable
+from bluesky.callbacks.zmq import Publisher
 
 happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
 
@@ -36,6 +39,11 @@ try:
     socket.gethostbyname(host)
 except socket.gaierror:
     host = "172.17.0.1"  # Default host ip on Linux
+
+# 0MQ
+zmq = Publisher(f"{host}:5567")
+RE = RunEngine({})
+RE.subscribe(zmq)
 
 for device in happi_client.all_items:
     # Skip devices marked inactive in happi

@@ -7,9 +7,7 @@ RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
 RUN apt install python3-venv -y
 
-COPY ./happi.ini /happi.ini
 COPY ./startup.py ./startup.py
-COPY ./start_re.sh ./start_re.sh
 COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
 COPY ./requirements.txt /requirements.txt
 
@@ -22,10 +20,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install dependencies
 RUN python3 -m pip install -r requirements.txt
 
-ENV PYTHONUNBUFFERED=1
-ENV HAPPI_CFG=/happi.ini
-
 RUN qserver-list-plans-devices --startup-script startup.py
-
-# start
-CMD ["./start_re.sh"]
