@@ -1,0 +1,8 @@
+attune==0.5.1
+bluesky==1.15.0  # ignore
+bluesky-queueserver==0.0.22  # ignore
+happi==3.0.1
+numpy==2.4.4  # ignore
+pint==0.25.3
+wright-plans==2022.7.0
+yaqc-bluesky==2023.8.0

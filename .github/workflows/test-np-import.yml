@@ -1,0 +1,34 @@
+name: docker-compose-test
+
+on:
+  push:
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+    - 
+      name: Checkout code
+      uses: actions/checkout@v5
+    -
+      name: Build image
+      uses: docker/setup-compose-action@v2
+    -
+      name: Set up environment
+      run: |
+        cp -r ./tests/test.env .env
+        echo "HAPPI_DB_PATH= $GITHUB_WORKSPACE/tests/happi_db.json" >> .env
+        cp -r ./tests/numpy-test numpy-test
+    -
+      name: Designate file permissions
+      run: chmod +x ./re-manager/start_re.sh
+    - 
+      name: Build image
+      run: docker build -t numpy-test .
+    - 
+      name: Run container
+      run: docker run numpy-test
+    -
+      name: Stop Docker images
+      if: always()
+      run: docker compose down
