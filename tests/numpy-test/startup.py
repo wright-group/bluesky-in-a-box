@@ -24,7 +24,7 @@ from bluesky.preprocessors import baseline_decorator
 from bluesky.protocols import Movable
 from bluesky.callbacks.zmq import Publisher
 
-happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
+# happi_client = happi.Client(database=happi.backends.backend("/happi_db.json"))
 
 # Movable devices to read baseline before and after scans
 movables = []

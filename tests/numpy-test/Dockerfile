@@ -7,7 +7,6 @@ RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
 RUN apt install python3-venv -y
 
-COPY ./happi.ini /happi.ini
 COPY ./startup.py ./startup.py
 COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
 COPY ./requirements.txt /requirements.txt
