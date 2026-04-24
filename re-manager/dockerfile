@@ -20,6 +20,7 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies
+RUN python3 -m pip install git+https://github.com/ddkohler/yaqc-bluesky
 RUN python3 -m pip install -r requirements.txt
 
 ENV PYTHONUNBUFFERED=1
