@@ -17,6 +17,7 @@ RUN python3 -m venv /opt/venv
 # Activate the virtual environment
 ENV PATH="/opt/venv/bin:$PATH"
 
+RUN python3 -m pip install git+https://github.com/ddkohler/yaqc-bluesky
 RUN pip install -r requirements.txt
 
 ENV HAPPI_CFG=/happi.ini
