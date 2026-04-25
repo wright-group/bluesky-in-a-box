@@ -103,6 +103,19 @@ def _find_acquisition_file(specifier):
     return list(pathlib.Path("/data").glob(f"*{specifier}*"))
 
 
+class NoBlockRD(RemoteDispatcher):
+    """
+    hack to interleave zmq dispatcher with slack
+    RemoteDispatcher only has a blocking utility atm
+    """
+    async def astart(self):
+        self._RemoteDispatcher__factory()
+        try:
+            await self._poll()
+        finally:
+            self.stop()
+
+
 async def main():
     handler = AsyncSocketModeHandler(app, app_token=os.environ["SLACK_APP_TOKEN"])
     await handler.connect_async()
@@ -110,11 +123,10 @@ async def main():
     user = await app.client.auth_test()
     logging.info(user)
 
-    loop = asyncio.get_running_loop()
-    dispatcher = RemoteDispatcher("zmq-proxy:5568", loop=loop)
+    dispatcher = NoBlockRD("zmq-proxy:5568")
     dispatcher.subscribe(Acquisition(app, os.environ.get("SLACK_CHANNEL")))
-    await dispatcher._poll()
 
+    await dispatcher.astart()
     await handler.disconnect_async()
 
 
