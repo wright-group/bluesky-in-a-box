@@ -116,7 +116,6 @@ class NoBlockRD(RemoteDispatcher):
             self.stop()
 
 
-
 async def main():
     handler = AsyncSocketModeHandler(app, app_token=os.environ["SLACK_APP_TOKEN"])
     await handler.connect_async()
