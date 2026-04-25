@@ -14,5 +14,8 @@ updates:
   - package-ecosystem: "pip"
     directories: 
       - "**/*"
+    ignore:
+      - dependency-name: "numpy"
+        versions: [ ">=2.4" ]
     schedule:
       interval: "weekly"
