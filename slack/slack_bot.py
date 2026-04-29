@@ -113,6 +113,7 @@ async def main():
     dispatcher = RemoteDispatcher("zmq-proxy:5568")
     dispatcher.subscribe(Acquisition(app, os.environ.get("SLACK_CHANNEL")))
 
+    await asyncio.get_running_loop().run_in_executor(None, dispatcher.start)
     await handler.disconnect_async()
 
 
