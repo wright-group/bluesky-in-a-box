@@ -11,6 +11,10 @@ import numpy as np
 import toolz
 import WrightTools as wt
 
+
+logging.basicConfig(level=logging.INFO)
+
+
 class NumpyArrayEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
@@ -275,10 +279,10 @@ def add_inner_list_product_axes(data, pattern_args, motors, axis_units):
 def resave(filepath):
     try:
         first = pathlib.Path(filepath)
-        first_size = first.stat.st_size
+        first_size = first.stat().st_size
         data = wt.open(first)
         data.save(first, overwrite=True)
-        second_size = first.stat.st_size
+        second_size = first.stat().st_size
 
         logging.getLogger().info(f"second save: {get_human_size(first_size)} -> {get_human_size(second_size)}")
     except Exception as e:
