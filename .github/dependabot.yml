@@ -15,9 +15,7 @@ updates:
     directories: 
       - "**/*"
     ignore:
-      - dependency-name: "bluesky"
-        versions: [ ">1.10.0" ]
-      - dependency-name: "bluesky-queueserver"
-        versions: [ ">0.0.20" ]
+      - dependency-name: "numpy"
+        versions: [ ">=2.4" ]
     schedule:
       interval: "weekly"

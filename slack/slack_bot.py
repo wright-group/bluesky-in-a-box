@@ -110,10 +110,9 @@ async def main():
     user = await app.client.auth_test()
     logging.info(user)
 
-    loop = asyncio.get_running_loop()
-    dispatcher = RemoteDispatcher("zmq-proxy:5568", loop=loop)
+    dispatcher = RemoteDispatcher("zmq-proxy:5568")
     dispatcher.subscribe(Acquisition(app, os.environ.get("SLACK_CHANNEL")))
-    await dispatcher._poll()
+    await asyncio.to_thread(dispatcher.start)
 
     await handler.disconnect_async()
 
