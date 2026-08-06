@@ -44,6 +44,7 @@ Go to http://localhost:60610/docs to see queueserver api. Note: not active at th
 - conda install happi
 - conda install yaqc-bluesky
 - conda install bluesky-queueserver
+- conda install bluesky-queueserver-api
 - conda install bluesky-hwproxy
 - conda install bluesky-widgets
 - conda install yaqc-qtpy
@@ -87,7 +88,7 @@ Go to http://localhost:60610/docs to see queueserver api. Note: not active at th
   - edit `.env`
      - set `HAPPI_DB_PATH=C:\Users\<USERNAME>\AppData\Local\happi\happi\happidb.json`
      - set `WT5_DATA_PATH=C:\Users\<USERNAME>\bluesky-cmds-data`
-     - set `TZ=America/Chicago` (or whatever timezone you are in)
+     - set `TZ=America/Chicago` (or whatever timezone you are in; see https://utctime.info/timezone/ for others)
 
 ### Start/Update Containers
 
