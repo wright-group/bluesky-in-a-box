@@ -3,12 +3,17 @@ import json
 import pathlib
 import subprocess
 import traceback
+import logging
 
 from bluesky.callbacks.zmq import RemoteDispatcher
 from bluesky.callbacks import CallbackBase
 import numpy as np
 import toolz
 import WrightTools as wt
+
+
+logging.basicConfig(level=logging.INFO)
+
 
 class NumpyArrayEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -227,6 +232,8 @@ class GenWT5(CallbackBase):
             self.data[name].flush()
             self.data[name].close()
 
+            resave(filepath)
+
             for dev, hints in descriptor_doc["hints"].items():
                 for chan in hints["fields"]:
                     try:
@@ -268,6 +275,25 @@ def add_inner_list_product_axes(data, pattern_args, motors, axis_units):
         arr = np.array(lis)
         arr = arr.reshape(tuple(shape))
         data.create_variable(f"{mot}_points", values=arr, units=axis_units.get(mot), compression="gzip", shuffle=True)
+
+def resave(filepath):
+    try:
+        first = pathlib.Path(filepath)
+        first_size = first.stat().st_size
+        data = wt.open(first)
+        data.save(first, overwrite=True)
+        second_size = first.stat().st_size
+
+        logging.getLogger().info(f"second save: {get_human_size(first_size)} -> {get_human_size(second_size)}")
+    except Exception as e:
+        traceback.print_exc()
+        print(f"Failed to resave {str(filepath)}")
+
+def get_human_size(size_bytes):
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size_bytes < 1024:
+            return f"{size_bytes:.2f} {unit}"
+        size_bytes /= 1024
 
 
 dispatcher = RemoteDispatcher("zmq-proxy:5568")
