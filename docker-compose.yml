@@ -1,20 +1,4 @@
 services:
-  redis:
-    env_file: .env
-    image: redis:latest
-    ports:
-      - 6379:6379
-  re-manager:
-    env_file: .env
-    build: ./re-manager
-    ports:
-      - 60615:60615
-      - 60625:60625
-    volumes:
-      - ${HAPPI_DB_PATH}:/happi_db.json
-    depends_on:
-      - "redis"
-      - "zmq-proxy"
   hwproxy:
     env_file: .env
     build: ./hwproxy
@@ -22,6 +6,7 @@ services:
       - 60620:60620
     volumes:
       - ${HAPPI_DB_PATH}:/happi_db.json
+x-disabled:
   zmq-proxy:
     env_file: .env
     build: ./zmq-proxy
@@ -42,7 +27,22 @@ services:
       - "zmq-proxy"
     volumes:
       - ${WT5_DATA_PATH}:/data
-x-disabled:
+  redis:
+    env_file: .env
+    image: redis:latest
+    ports:
+      - 6379:6379
+  re-manager:
+    env_file: .env
+    build: ./re-manager
+    ports:
+      - 60615:60615
+      - 60625:60625
+    volumes:
+      - ${HAPPI_DB_PATH}:/happi_db.json
+    depends_on:
+      - "redis"
+      - "zmq-proxy"
   mongo:
     env_file: .env
     image: mongo:latest
