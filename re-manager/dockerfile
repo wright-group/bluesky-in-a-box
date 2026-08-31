@@ -9,9 +9,9 @@ RUN apt install python3-venv -y
 
 # startup.py just tries to import baseline decorator
 COPY ./startup.py ./startup.py
+COPY ./requirements.txt /requirements.txt
 # COPY ./start_re.sh ./start_re.sh
 # COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
-# COPY ./requirements.txt /requirements.txt
 # COPY ./happi.ini /happi.ini
 
 # Create a virtual environment
@@ -21,7 +21,7 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install bluesky==1.15.1 bluesky-queueserver==0.0.25 happi==3.0.1 numpy==2.4.4
 RUN python3 -m pip install --force-reinstall --no-deps git+https://github.com/ddkohler/yaqc-bluesky
 
 # ENV PYTHONUNBUFFERED=1
