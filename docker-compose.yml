@@ -1,4 +1,8 @@
 services:
+  re-manager:
+    env_file: .env
+    build: ./re-manager
+x-disabled:
   zmq-proxy:
     env_file: .env
     build: ./zmq-proxy
@@ -10,18 +14,6 @@ services:
     image: redis:latest
     ports:
       - 6379:6379
-  re-manager:
-    env_file: .env
-    build: ./re-manager
-    ports:
-      - 60615:60615
-      - 60625:60625
-    volumes:
-      - ${HAPPI_DB_PATH}:/happi_db.json
-    depends_on:
-      - "redis"
-      - "zmq-proxy"
-x-disabled:
   hwproxy:
     env_file: .env
     build: ./hwproxy
