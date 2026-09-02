@@ -8,7 +8,7 @@ RUN apt install python3-pip -y
 RUN apt install python3-venv -y
 
 # startup.py:  from bluesky.preprocessors import baseline_decorator
-RUN ECHO "from bluesky.preprocessors import baseline_decorator" > ./startup.py
+RUN echo "from bluesky.preprocessors import baseline_decorator" > ./startup.py
 
 # Create a virtual environment
 RUN python3 -m venv /opt/venv
