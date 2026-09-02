@@ -20,7 +20,7 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies
-RUN python3 -m pip install bluesky==1.15.1 happi==3.0.1 numpy==2.4.4
+RUN python3 -m pip install -r requirements.txt
 RUN python3 -m pip install "git+https://github.com/dmgav/bluesky-queueserver.git@fix-numpy-import"
 RUN python3 -m pip install --force-reinstall --no-deps git+https://github.com/ddkohler/yaqc-bluesky
 
