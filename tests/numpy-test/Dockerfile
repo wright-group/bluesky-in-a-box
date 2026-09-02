@@ -8,10 +8,8 @@ RUN apt install python3-pip -y
 RUN apt install python3-venv -y
 
 COPY ./startup.py ./startup.py
-COPY ./requirements.txt /requirements.txt
-COPY ./start_re.sh ./start_re.sh
 COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
-COPY ./happi.ini /happi.ini
+COPY ./requirements.txt /requirements.txt
 
 # Create a virtual environment
 RUN python3 -m venv /opt/venv
@@ -21,13 +19,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies
 RUN python3 -m pip install -r requirements.txt
-RUN python3 -m pip install "git+https://github.com/dmgav/bluesky-queueserver.git@fix-numpy-import"
-RUN python3 -m pip install --force-reinstall --no-deps git+https://github.com/ddkohler/yaqc-bluesky
-
-ENV PYTHONUNBUFFERED=1
-ENV HAPPI_CFG=/happi.ini
 
 RUN qserver-list-plans-devices --startup-script startup.py
-
-# start
-CMD ["./start_re.sh"]

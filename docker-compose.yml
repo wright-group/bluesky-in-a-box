@@ -1,4 +1,10 @@
 services:
+  zmq-proxy:
+    env_file: .env
+    build: ./zmq-proxy
+    ports:
+      - 5567:5567
+      - 5568:5568
   redis:
     env_file: .env
     image: redis:latest
@@ -22,12 +28,6 @@ services:
       - 60620:60620
     volumes:
       - ${HAPPI_DB_PATH}:/happi_db.json
-  zmq-proxy:
-    env_file: .env
-    build: ./zmq-proxy
-    ports:
-      - 5567:5567
-      - 5568:5568
   wt5:
     env_file: .env
     build: ./wt5
