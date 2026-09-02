@@ -7,9 +7,11 @@ RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
 RUN apt install python3-venv -y
 
-# startup.py:  from bluesky.preprocessors import baseline_decorator
-# RUN echo "from bluesky.preprocessors import baseline_decorator" > ./startup.py
 COPY ./startup.py ./startup.py
+COPY ./requirements.txt /requirements.txt
+COPY ./start_re.sh ./start_re.sh
+COPY ./user_group_permissions.yaml ./user_group_permissions.yaml
+COPY ./happi.ini /happi.ini
 
 # Create a virtual environment
 RUN python3 -m venv /opt/venv
@@ -18,6 +20,14 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies
-RUN python3 -m pip install bluesky==1.15.1 bluesky-queueserver==0.0.25 numpy==2.4.4
+RUN python3 -m pip install bluesky==1.15.1 happi==3.0.1 numpy==2.4.4
 RUN python3 -m pip install "git+https://github.com/dmgav/bluesky-queueserver.git@fix-numpy-import"
+RUN python3 -m pip install --force-reinstall --no-deps git+https://github.com/ddkohler/yaqc-bluesky
+
+ENV PYTHONUNBUFFERED=1
+ENV HAPPI_CFG=/happi.ini
+
 RUN qserver-list-plans-devices --startup-script startup.py
+
+# start
+CMD ["./start_re.sh"]
