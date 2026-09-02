@@ -7,8 +7,8 @@ RUN apt install librdkafka-dev -y
 RUN apt install python3-pip -y
 RUN apt install python3-venv -y
 
-# startup.py just tries to import baseline decorator
-COPY ./startup.py ./startup.py
+# startup.py:  from bluesky.preprocessors import baseline_decorator
+RUN ECHO "from bluesky.preprocessors import baseline_decorator" > ./startup.py
 
 # Create a virtual environment
 RUN python3 -m venv /opt/venv
@@ -18,5 +18,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies
 RUN python3 -m pip install bluesky==1.15.1 bluesky-queueserver==0.0.25 numpy==2.4.4
-
+RUN python3 -m pip install "git+https://github.com/dmgav/bluesky-queueserver.git@fix-numpy-import"
 RUN qserver-list-plans-devices --startup-script startup.py
