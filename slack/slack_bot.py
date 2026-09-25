@@ -62,7 +62,7 @@ async def handle_message(body, logger):
         logging.info("the message event was not an im type!")
 
 
-def plot(app:AsyncApp, paths:str, event:dict, channels:list[str]):
+def plot(app:AsyncApp, paths:list[pathlib.Path], event:dict, channels:list[str]):
     """
     Upload a selection of images located within the folder path. 
     Total number of images uploaded is limited to 10.
