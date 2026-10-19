@@ -102,18 +102,20 @@ def fetch(app:AsyncApp, paths:list[pathlib.Path], event:dict, *args):
     scan_name = path.stem
     assert path.exists()
 
-    try:
-        shutil.make_archive(scan_name, "zip", str(path))
-        client_handler(
-            app.client.files_upload_v2,
-            initial_comment=f"<@{event['user']}> fetched from `{scan_name}`",
-            filename= f"{scan_name}_primary.wt5",
-            file=str(path),
-            **kwargs
-        )
-    finally:
-        if (zipfile := pathlib.Path(f"{path.stem}.zip")).exists():
-            os.remove(str(zipfile))
+    zipfile = pathlib.Path(shutil.make_archive(pathlib.Path().home() / scan_name, "zip", root_dir=str(path)))
+
+    def _remove_zipfile_after_loaded(response, exception):
+        logging.getLogger().info(f"removing zipfile at {zipfile=}")
+        os.remove(str(zipfile))
+
+    client_handler(
+        app.client.files_upload_v2,
+        initial_comment=f"<@{event['user']}> fetched from `{scan_name}`",
+        filename=zipfile.name,
+        file=zipfile,
+        **kwargs,
+        callback=_remove_zipfile_after_loaded
+    )
 
 
 def _find_acquisition_file(specifier):
