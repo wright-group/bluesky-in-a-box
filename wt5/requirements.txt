@@ -1,4 +1,4 @@
-bluesky==1.15.1  # ignore
+bluesky==1.16.0  # ignore
 numpy<2.4
 pyzmq==27.2.0
 toolz==1.2.0
