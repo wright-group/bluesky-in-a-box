@@ -1,2 +1,2 @@
-bluesky==1.15.1  # ignore
+bluesky==1.16.0  # ignore
 pyzmq==27.2.0
